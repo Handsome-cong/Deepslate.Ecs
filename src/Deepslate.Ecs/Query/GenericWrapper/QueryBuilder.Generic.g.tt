@@ -1,0 +1,97 @@
+<#@ template language="C#" #>
+<#@ import namespace="System.Linq" #>
+<#@ include file="QueryConstants.ttinclude"#>
+namespace Deepslate.Ecs.GenericWrapper;
+
+#nullable enable
+
+<#
+    foreach (var writableGenericParameterCount in Enumerable.Range(0, MaxGenericParameters + 1))
+    {
+        var writableGenericParameters = string.Join(", ",
+            Enumerable.Range(1, writableGenericParameterCount).Select(i => $"TWritable{i}"));
+        writableGenericParameters = writableGenericParameterCount > 0 ? $"<{writableGenericParameters}>" : "";
+
+        var writableGenericParametersWhere = string.Join("\n",
+            Enumerable.Range(1, writableGenericParameterCount).Select(i => $"    where TWritable{i} : IComponent"));
+#>
+public partial struct Writable<#= writableGenericParameters #>
+<#= writableGenericParametersWhere #>{
+<#
+        foreach (var readOnlyGenericParameterCount in Enumerable.Range(0, MaxGenericParameters + 1))
+        {
+            var readOnlyGenericParameters = string.Join(", ", 
+                Enumerable.Range(1, readOnlyGenericParameterCount)
+                    .Select(i => $"TReadOnly{i}"));
+            readOnlyGenericParameters = readOnlyGenericParameterCount > 0 ? $"<{readOnlyGenericParameters}>" : "";
+
+            var readOnlyGenericParametersWhere = string.Join("\n",
+                Enumerable.Range(1, readOnlyGenericParameterCount)
+                    .Select(i => $"        where TReadOnly{i} : IComponent"));
+            
+            var writablePartResultOfRequireWritable = string.Join(", ",
+                Enumerable.Range(1, writableGenericParameterCount + 1)
+                    .Select(i=> $"TWritable{i}"));
+            writablePartResultOfRequireWritable = $"<{writablePartResultOfRequireWritable}>";
+            
+            var readOnlyPartResultOfRequireWritable = string.Join(", ",
+                Enumerable.Range(1, readOnlyGenericParameterCount)
+                    .Select(i=> $"TReadOnly{i}"));
+            readOnlyPartResultOfRequireWritable = readOnlyGenericParameterCount > 0 ? $"<{readOnlyPartResultOfRequireWritable}>" : "";
+            
+            var writablePartResultOfRequireReadOnly = string.Join(", ",
+                Enumerable.Range(1, writableGenericParameterCount)
+                    .Select(i=> $"TWritable{i}"));
+            writablePartResultOfRequireReadOnly = writableGenericParameterCount > 0 ? $"<{writablePartResultOfRequireReadOnly}>" : "";
+            
+            var readOnlyPartResultOfRequireReadOnly = string.Join(", ",
+                Enumerable.Range(1, readOnlyGenericParameterCount + 1)
+                    .Select(i=> $"TReadOnly{i}"));
+            readOnlyPartResultOfRequireReadOnly = $"<{readOnlyPartResultOfRequireReadOnly}>";
+            
+            var nextWritableGenericParameter = $"TWritable{writableGenericParameterCount + 1}";
+            var nextReadOnlyGenericParameter = $"TReadOnly{readOnlyGenericParameterCount + 1}";
+#>
+    public partial struct ReadOnly<#= readOnlyGenericParameters #>
+<#= readOnlyGenericParametersWhere #>    {
+        public readonly struct QueryBuilder(Deepslate.Ecs.QueryBuilder builder)
+        {
+            public Deepslate.Ecs.QueryBuilder Builder { get; } = builder;
+
+            public QueryBuilder With<TComponent>()
+                where TComponent : IComponent =>
+                new(Builder.With(typeof(TComponent)));
+
+            public QueryBuilder Without<TComponent>()
+                where TComponent : IComponent =>
+                new(Builder.Without(typeof(TComponent)));
+
+            public QueryBuilder Ignore(Archetype archetype) =>
+                new(Builder.Ignore(archetype));
+<#
+            if (writableGenericParameterCount < MaxGenericParameters)
+            {
+#>
+            public Writable<#= writablePartResultOfRequireWritable #>.ReadOnly<#= readOnlyPartResultOfRequireWritable #>.QueryBuilder RequireWritable<<#= nextWritableGenericParameter #>>()
+                where <#= nextWritableGenericParameter #> : IComponent =>
+                new(Builder.RequireWritable(typeof(<#= nextWritableGenericParameter #>)));
+<#
+            }
+            if (readOnlyGenericParameterCount < MaxGenericParameters)
+            {
+#>
+            public ReadOnly<#= readOnlyPartResultOfRequireReadOnly #>.QueryBuilder RequireReadOnly<<#= nextReadOnlyGenericParameter #>>()
+                where <#= nextReadOnlyGenericParameter #> : IComponent =>
+                new(Builder.RequireReadOnly(typeof(<#= nextReadOnlyGenericParameter #>)));
+<#
+            }
+#>
+        }
+    }
+<#
+        }
+#>
+}
+<#
+    }
+#>

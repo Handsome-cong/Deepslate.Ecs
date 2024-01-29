@@ -1,0 +1,77 @@
+﻿<#@ template language="C#" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ include file="QueryConstants.ttinclude"#><#@ import namespace="System.Linq" #>
+namespace Deepslate.Ecs.GenericWrapper;
+
+#nullable enable
+
+<#
+    foreach (var genericParameterCount in Enumerable.Range(0, MaxGenericParameters * 2 + 1))
+    {
+        var genericParameters = string.Join(", ",
+            Enumerable.Range(1, genericParameterCount).Select(i => $"TComponent{i}"));
+        genericParameters = genericParameterCount > 0 ? $"<{genericParameters}>" : "";
+
+        var genericParametersWhere = string.Concat(Enumerable.Range(1, genericParameterCount)
+            .Select(i => $"    where TComponent{i} : IComponent\n"));
+
+        var spans = string.Join("\n", Enumerable.Range(1, genericParameterCount)
+            .Select(i => $"    internal Span<TComponent{i}> CurrentComponent{i}Span = Span<TComponent{i}>.Empty;"));
+
+        var currentSpanUpdates = string.Join("\n", Enumerable.Range(1, genericParameterCount)
+            .Select(i => $"            CurrentComponent{i}Span = CurrentArchetype.GetStorage<TComponent{i}>().AsSpan();"));
+
+        var currentSpanReset = string.Join("\n", Enumerable.Range(1, genericParameterCount)
+            .Select(i => $"        CurrentComponent{i}Span = Span<TComponent{i}>.Empty;"));
+#>
+internal ref struct QueryEnumeratorData<#= genericParameters #>
+<#= genericParametersWhere #>{
+    private readonly Archetype[] _archetypes;
+    internal Span<Entity> CurrentEntitySpan = Span<Entity>.Empty;
+
+<#= spans #>
+
+    private int _currentArchetypeIndex = -1;
+    private int _currentIndex = -1;
+    <# // TODO: An empty Archetype maybe better than defautl!#>
+    public int CurrentIndex => _currentIndex;
+    public Archetype CurrentArchetype { get; private set; } = default!;
+
+    internal QueryEnumeratorData(IEnumerable<Archetype> archetypes)
+    {
+        _archetypes = archetypes.ToArray();
+    }
+
+    public bool MoveNext()
+    {
+        _currentIndex++;
+        while (_currentArchetypeIndex < _archetypes.Length && _currentIndex >= CurrentArchetype.Count)
+        {
+            _currentArchetypeIndex++;
+            _currentIndex = 0;
+        }
+
+        var success = _currentArchetypeIndex < _archetypes.Length;
+        if (success)
+        {
+            CurrentArchetype = _archetypes[_currentArchetypeIndex];
+            CurrentEntitySpan = CurrentArchetype.Entities.AsSpan();
+<#= currentSpanUpdates #>
+        }
+
+        return success;
+    }
+
+    public void Reset()
+    {
+<#= currentSpanReset #>
+        
+        _currentArchetypeIndex = -1;
+        _currentIndex = -1;
+    }
+}
+
+<#
+    }
+#>

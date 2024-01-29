@@ -1,0 +1,158 @@
+﻿<#@ template language="C#" #>
+<#@ include file="QueryConstants.ttinclude"#><#@ import namespace="System.Linq" #>
+using System.Runtime.CompilerServices;
+
+namespace Deepslate.Ecs.GenericWrapper;
+
+#nullable enable
+
+<#
+    foreach (var writableGenericParameterCount in Enumerable.Range(0, MaxGenericParameters + 1))
+    {
+        var writableGenericParameters = string.Join(", ",
+            Enumerable.Range(1, writableGenericParameterCount).Select(i => $"TWritable{i}"));
+        writableGenericParameters = writableGenericParameterCount > 0 ? $"<{writableGenericParameters}>" : "";
+
+        var writableGenericParametersWhere = string.Join("\n",
+            Enumerable.Range(1, writableGenericParameterCount).Select(i => $"    where TWritable{i} : IComponent"));
+#>
+public partial struct Writable<#= writableGenericParameters #>
+<#= writableGenericParametersWhere #>{
+<#
+        foreach (var readOnlyGenericParameterCount in Enumerable.Range(0, MaxGenericParameters + 1))
+        {
+            var readOnlyGenericParameters = string.Join(", ", 
+                Enumerable.Range(1, readOnlyGenericParameterCount)
+                    .Select(i => $"TReadOnly{i}"));
+            readOnlyGenericParameters = readOnlyGenericParameterCount > 0 ? $"<{readOnlyGenericParameters}>" : "";
+
+            var readOnlyGenericParametersWhere = string.Concat(
+                Enumerable.Range(1, readOnlyGenericParameterCount)
+                    .Select(i => $"        where TReadOnly{i} : IComponent\n"));
+
+            var writableStorages = string.Join("\n", Enumerable.Range(1, writableGenericParameterCount)
+                .Select(i => $"            private readonly IComponentStorage<TWritable{i}>[] _writeable{i}Storages = query.GetStorages<TWritable{i}>();"));
+
+            var readOnlyStorages = string.Join("\n", Enumerable.Range(1, readOnlyGenericParameterCount)
+                .Select(i => $"            private readonly IComponentStorage<TReadOnly{i}>[] _readOnly{i}Storages = query.GetStorages<TReadOnly{i}>();"));
+
+            var dataWritableGenericArguments = string.Join(", ", Enumerable.Range(1, writableGenericParameterCount)
+                .Select(i => $"TWritable{i}"));
+
+            var dataReadOnlyGenericArguments = string.Join(", ", Enumerable.Range(1, readOnlyGenericParameterCount)
+                .Select(i => $"TReadOnly{i}"));
+
+            var dataGenericArguments = dataWritableGenericArguments + dataReadOnlyGenericArguments;
+            if (writableGenericParameterCount > 0 && readOnlyGenericParameterCount > 0)
+            {
+                dataGenericArguments = string.Join(", ",
+                    dataWritableGenericArguments,
+                    dataReadOnlyGenericArguments);
+            }
+            if (writableGenericParameterCount + readOnlyGenericParameterCount > 0)
+            {
+                dataGenericArguments = $"<{dataGenericArguments}>";
+            }
+
+            var currentComponentBundleWritableInitialization = string.Join(",\n",
+                Enumerable.Range(1, writableGenericParameterCount)
+                    .Select(i => $"                    WritableComponent{i} = ref Data.CurrentComponent{i}Span[Data.CurrentIndex]"));
+
+            var currentComponentBundleReadOnlyInitialization = string.Join(",\n",
+                Enumerable.Range(1, readOnlyGenericParameterCount)
+                    .Select(i => $"                    ReadOnlyComponent{i} = ref Data.CurrentComponent{i + writableGenericParameterCount}Span[Data.CurrentIndex]"));
+
+            var currentComponentBundleInitialization = currentComponentBundleWritableInitialization +
+                                                       currentComponentBundleReadOnlyInitialization;
+            if (writableGenericParameterCount > 0 && readOnlyGenericParameterCount > 0)
+            {
+                currentComponentBundleInitialization = string.Join(",\n",
+                    currentComponentBundleWritableInitialization,
+                    currentComponentBundleReadOnlyInitialization);
+            }
+            var currentComponentBundleInitializationWithBraces = "";
+            if (writableGenericParameterCount + readOnlyGenericParameterCount > 0)
+            {
+                currentComponentBundleInitializationWithBraces =
+                    $"\n                {{\n{currentComponentBundleInitialization}\n                }}";
+            }
+
+            var writableFields = string.Join("\n", Enumerable.Range(1, writableGenericParameterCount)
+                .Select(i => $"                public ref TWritable{i} WritableComponent{i};"));
+
+            var readOnlyFields = string.Join("\n", Enumerable.Range(1, readOnlyGenericParameterCount)
+                .Select(i => $"                public ref readonly TReadOnly{i} ReadOnlyComponent{i};"));
+#>
+    public partial struct ReadOnly<#= readOnlyGenericParameters #>
+<#= readOnlyGenericParametersWhere #>    {
+        public readonly struct Query(Deepslate.Ecs.Query query)
+        {
+            private readonly Deepslate.Ecs.Query _query = query;
+
+<#= writableStorages #>
+<#= readOnlyStorages #>
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Enumerator GetEnumerator() => new() { Data = new(_query.MatchedArchetypes) };
+
+            public ref struct Enumerator
+            {
+                internal QueryEnumeratorData<#= dataGenericArguments #> Data;
+
+                public ComponentBundle Current => new()<#= currentComponentBundleInitializationWithBraces #>;
+
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public void Reset() => Data.Reset();
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public bool MoveNext() => Data.MoveNext();
+            }
+            
+            public ref struct ComponentBundle
+            {
+<#= writableFields #>
+<#= readOnlyFields #>
+            }
+        }
+
+        public readonly struct Query<TArchetypeCommand>(Deepslate.Ecs.Query query)
+            where TArchetypeCommand : struct, IArchetypeCommand<TArchetypeCommand>
+        {
+            private readonly Deepslate.Ecs.Query _query = query;
+
+<#= writableStorages #>
+<#= readOnlyStorages #>
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Enumerator GetEnumerator() => new() { Data = new(_query.MatchedArchetypes) };
+
+            public ref struct Enumerator
+            {
+                internal QueryEnumeratorData<#= dataGenericArguments #> Data;
+
+                public ComponentBundle Current => new()
+                {
+                    ArchetypeCommand = TArchetypeCommand.Create(Data.CurrentArchetype),
+<#= currentComponentBundleInitialization #>
+                };
+
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public void Reset() => Data.Reset();
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public bool MoveNext() => Data.MoveNext();
+            }
+            
+            public ref struct ComponentBundle
+            {
+                public TArchetypeCommand ArchetypeCommand;
+<#= writableFields #>
+<#= readOnlyFields #>
+            }
+        }
+    }
+<#
+        }
+#>
+}
+<#
+    }
+#>
