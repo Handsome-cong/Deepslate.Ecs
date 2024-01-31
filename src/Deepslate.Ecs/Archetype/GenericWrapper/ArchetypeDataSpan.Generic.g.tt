@@ -1,0 +1,42 @@
+﻿<#@ template language="C#" #>
+<#@ import namespace="System.Linq" #>
+<#@ include file="../../Constants.ttinclude"#>
+namespace Deepslate.Ecs.GenericWrapper;
+
+<#
+    foreach (var genericParameterCount in Enumerable.Range(0, MaxGenericParameters * 2 + 1))
+    {
+        var genericParameters = string.Join(", ",
+            Enumerable.Range(1, genericParameterCount).Select(i => $"TComponent{i}"));
+        genericParameters = genericParameterCount > 0 ? $"<{genericParameters}>" : "";
+
+        var genericParametersWhere = string.Concat(Enumerable.Range(1, genericParameterCount)
+            .Select(i => $"    where TComponent{i} : IComponent\n"));
+
+        var spans = string.Concat(Enumerable.Range(1, genericParameterCount)
+            .Select(i => $"    public readonly Span<TComponent{i}> Component{i}Span = Span<TComponent{i}>.Empty;\n"));
+        
+        var spansInit = string.Join("\n", Enumerable.Range(1, genericParameterCount)
+            .Select(i => $"        Component{i}Span = archetype.GetComponents<TComponent{i}>(range);"));
+#>
+internal readonly ref struct ArchetypeDataSpan<#=genericParameters#>
+<#=genericParametersWhere#>{
+    public int Count => EntitySpan.Length;
+    
+    public readonly ReadOnlySpan<Entity> EntitySpan = Span<Entity>.Empty;
+<#=spans#>
+    public ArchetypeDataSpan(Archetype archetype, Range range)
+    {
+        var (_, length) = range.GetOffsetAndLength(archetype.Count);
+        if (length <= 0)
+        {
+            return;
+        }
+        EntitySpan = archetype.GetEntities(range);
+<#=spansInit#>
+    }
+}
+
+<#
+    }
+#>

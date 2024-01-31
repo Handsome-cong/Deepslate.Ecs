@@ -5,7 +5,7 @@ public partial class QueryBuilder
     public Query Build()
     {
         var matchedArchetypes = GetMatchedArchetypes();
-        
+
         var result = new Query(
             matchedArchetypes,
             RequiredWritableComponentTypes.ToArray());
@@ -40,7 +40,7 @@ public partial class QueryBuilder
         List<int> matchedIndices = [];
         for (int index = 0; index < counters.Length; index++)
         {
-            if (counters[index] == requiredComponentTypeCount && !ArchetypeBlacklist.Contains(allArchetypes[index]))
+            if (counters[index] == requiredComponentTypeCount && Filters.All(filter => filter(allArchetypes[index])))
             {
                 matchedIndices.Add(index);
             }

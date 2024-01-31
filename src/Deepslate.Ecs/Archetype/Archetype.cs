@@ -5,6 +5,7 @@ namespace Deepslate.Ecs;
 public sealed partial class Archetype : IDisposable
 {
     // TODO: Maybe an static empty archetype is useful.
+    public static readonly Archetype Empty = new(-1, Array.Empty<IComponentStorage>());
     
     public readonly int Id;
     

@@ -2,6 +2,8 @@
 
 public sealed class WorldBuilder
 {
+    private WorldOptions _options = WorldOptions.Default;
+    
     private readonly Dictionary<int, ArchetypeInfo> _archetypeInfos = new();
     private readonly List<Type> _managedComponentTypes = [];
     private readonly List<Type> _unmanagedComponentTypes = [];
@@ -12,6 +14,12 @@ public sealed class WorldBuilder
     public IEnumerable<Type> ManagedComponentTypes => _managedComponentTypes;
     public IEnumerable<Type> UnmanagedComponentTypes => _unmanagedComponentTypes;
 
+    public WorldBuilder WithOptions(WorldOptions options)
+    {
+        _options = options;
+        return this;
+    }
+    
     public WorldBuilder WithArchetype(IEnumerable<Type> info, out ArchetypeInfo archetypeInfo)
     {
         archetypeInfo = new ArchetypeInfo(info);

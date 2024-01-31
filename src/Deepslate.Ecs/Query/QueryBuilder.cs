@@ -10,7 +10,8 @@ public partial class QueryBuilder(World world)
     private List<Type> RequiredReadOnlyComponentTypes { get; } = [];
     private List<Type> IncludedComponentTypes { get; } = [];
     private List<Type> ExcludedComponentTypes { get; } = [];
-    private HashSet<Archetype> ArchetypeBlacklist { get; } = [];
+    private List<Func<Archetype, bool>> Filters { get; } = [];
+    private ArchetypeCommandType ArchetypeCommandType { get; set; } = ArchetypeCommandType.None;
 
     public QueryBuilder(QueryBuilder other)
         : this(other.World)
@@ -19,17 +20,17 @@ public partial class QueryBuilder(World world)
         RequiredReadOnlyComponentTypes.AddRange(other.RequiredReadOnlyComponentTypes);
         IncludedComponentTypes.AddRange(other.IncludedComponentTypes);
         ExcludedComponentTypes.AddRange(other.ExcludedComponentTypes);
-        ArchetypeBlacklist = [..other.ArchetypeBlacklist];
+        Filters.AddRange(other.Filters);
     }
 
-    internal QueryBuilder RequireWritable(Type type)
+    public QueryBuilder RequireWritable(Type type)
     {
         With(type);
         RequiredWritableComponentTypes.Add(type);
         return this;
     }
 
-    internal QueryBuilder RequireReadOnly(Type type)
+    public QueryBuilder RequireReadOnly(Type type)
     {
         With(type);
         RequiredReadOnlyComponentTypes.Add(type);
@@ -50,9 +51,15 @@ public partial class QueryBuilder(World world)
         return this;
     }
 
-    public QueryBuilder Ignore(Archetype archetype)
+    public QueryBuilder WithFilter(Func<Archetype, bool> predicate)
     {
-        ArchetypeBlacklist.Add(archetype);
+        Filters.Add(predicate);
+        return this;
+    }
+
+    public QueryBuilder RequireArchetypeCommand(ArchetypeCommandType requirement)
+    {
+        ArchetypeCommandType = requirement;
         return this;
     }
 }
@@ -73,5 +80,9 @@ public static class QueryBuilderExtensions
     
     public static Writable.ReadOnly.QueryBuilder Without<TWritable>(this QueryBuilder self)
         where TWritable : IComponent => new(self.Without(typeof(TWritable)));
+    
+    public static Writable.ReadOnly.QueryBuilder WithFilter(this QueryBuilder self, Func<Archetype, bool> predicate)
+        => new(self.WithFilter(predicate));
+    
     
 }

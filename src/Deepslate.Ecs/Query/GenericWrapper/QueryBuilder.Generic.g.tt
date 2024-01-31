@@ -1,6 +1,6 @@
 <#@ template language="C#" #>
 <#@ import namespace="System.Linq" #>
-<#@ include file="QueryConstants.ttinclude"#>
+<#@ include file="../../Constants.ttinclude"#>
 namespace Deepslate.Ecs.GenericWrapper;
 
 #nullable enable
@@ -66,8 +66,55 @@ public partial struct Writable<#= writableGenericParameters #>
                 where TComponent : IComponent =>
                 new(Builder.Without(typeof(TComponent)));
 
-            public QueryBuilder Ignore(Archetype archetype) =>
-                new(Builder.Ignore(archetype));
+            public QueryBuilder WithFilter(Func<Archetype, bool> predicate) =>
+                new(Builder.WithFilter(predicate));
+
+            public QueryBuilder RequireInstantArchetypeCommand() =>
+                new(Builder.RequireArchetypeCommand(ArchetypeCommandType.Instant));
+
+            public QueryBuilder RequireDeferredArchetypeCommand() =>
+                new(Builder.RequireArchetypeCommand(ArchetypeCommandType.Deferred));
+<#
+            if (writableGenericParameterCount < MaxGenericParameters)
+            {
+#>
+            public Writable<#= writablePartResultOfRequireWritable #>.ReadOnly<#= readOnlyPartResultOfRequireWritable #>.QueryBuilder RequireWritable<<#= nextWritableGenericParameter #>>()
+                where <#= nextWritableGenericParameter #> : IComponent =>
+                new(Builder.RequireWritable(typeof(<#= nextWritableGenericParameter #>)));
+<#
+            }
+            if (readOnlyGenericParameterCount < MaxGenericParameters)
+            {
+#>
+            public ReadOnly<#= readOnlyPartResultOfRequireReadOnly #>.QueryBuilder RequireReadOnly<<#= nextReadOnlyGenericParameter #>>()
+                where <#= nextReadOnlyGenericParameter #> : IComponent =>
+                new(Builder.RequireReadOnly(typeof(<#= nextReadOnlyGenericParameter #>)));
+<#
+            }
+#>
+        }
+
+        public readonly struct QueryBuilder<TArchetypeCommand>(Deepslate.Ecs.QueryBuilder builder)
+            where TArchetypeCommand : struct, IArchetypeCommand<TArchetypeCommand>
+        {
+            public Deepslate.Ecs.QueryBuilder Builder { get; } = builder;
+
+            public QueryBuilder With<TComponent>()
+                where TComponent : IComponent =>
+                new(Builder.With(typeof(TComponent)));
+
+            public QueryBuilder Without<TComponent>()
+                where TComponent : IComponent =>
+                new(Builder.Without(typeof(TComponent)));
+
+            public QueryBuilder WithFilter(Func<Archetype, bool> predicate) =>
+                new(Builder.WithFilter(predicate));
+
+            public QueryBuilder<InstantArchetypeCommand> RequireInstantArchetypeCommand() =>
+                new(Builder.RequireArchetypeCommand(ArchetypeCommandType.Instant));
+
+            public QueryBuilder<DeferredArchetypeCommand> RequireDeferredArchetypeCommand() =>
+                new(Builder.RequireArchetypeCommand(ArchetypeCommandType.Deferred));
 <#
             if (writableGenericParameterCount < MaxGenericParameters)
             {

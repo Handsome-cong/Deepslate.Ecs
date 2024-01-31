@@ -1,34 +1,41 @@
-﻿namespace Deepslate.Ecs;
+﻿using System.Buffers;
 
-internal sealed class ManagedComponentStorage<TComponent> : IComponentStorage<TComponent>
+namespace Deepslate.Ecs;
+
+internal sealed class ManagedComponentStorage<TComponent> (IComponentPoolFactory poolFactory)
+    : IComponentStorage<TComponent>, IDisposable
     where TComponent : IComponent
 {
-    private const int SizeOfPage = IComponentStorage.SizeOfPage;
-
-    private TComponent[] _components = Array.Empty<TComponent>();
+    private readonly IManagedComponentStoragePool<TComponent> _pool = poolFactory.CreateManagedPool<TComponent>();
+    private IMemoryOwner<TComponent> _components = EmptyMemoryOwner<TComponent>.Instance;
 
     public int Count { get; private set; }
     
-    public Span<TComponent> Add(int count = 1)
+    public void Add(int count = 1)
     {
         var newCount = Count + count;
-        if (newCount > _components.Length)
+        if (newCount > _components.Memory.Length)
         {
-            var newLength = (newCount / SizeOfPage + 1) * SizeOfPage;
-            Array.Resize(ref _components, newLength);
+            var newComponents = _pool.Rent(newCount);
+            _components.Memory.CopyTo(newComponents.Memory);
+            _pool.Return(_components);
+            _components = newComponents;
         }
         Count = newCount;
-        return _components.AsSpan(Count - count, count);
     }
 
-    public Span<TComponent> Pop(int count = 1)
+    public void Pop(int count = 1)
     {
         if (count > 0)
         {
             Count -= count;
         }
-        return _components.AsSpan(Count, count);
     }
 
-    public Span<TComponent> AsSpan() => _components;
+    public Span<TComponent> AsSpan() => _components.Memory.Span;
+
+    public void Dispose()
+    {
+        _pool.Return(_components);
+    }
 }

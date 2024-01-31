@@ -1,0 +1,3 @@
+﻿<#+
+    public const int MaxGenericParameters = 2;
+#>

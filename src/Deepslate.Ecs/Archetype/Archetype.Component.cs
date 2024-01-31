@@ -6,22 +6,36 @@ public sealed partial class Archetype
 {
     private readonly Type[] _componentTypes;
     private readonly IComponentStorage[] _componentStorages;
-    
+
     internal FrozenDictionary<Type, IComponentStorage> ComponentStorageDictionary { get; }
 
     public IEnumerable<Type> ComponentTypes => _componentTypes;
+    
+    public bool ContainsComponent<TComponent>()
+        where TComponent : IComponent => ComponentStorageDictionary.ContainsKey(typeof(TComponent));
 
-    internal ref TComponent GetComponent<TComponent>(Entity entity)
-        where TComponent: IComponent
+    internal Span<TComponent> GetComponent<TComponent>(Entity entity)
+        where TComponent : IComponent
     {
         var index = _entities.IndexOf(entity);
         if (index == EntityStorage.NoIndex)
         {
-            throw new ArgumentOutOfRangeException(nameof(entity), "Entity does not exist in this archetype.");
+            return Span<TComponent>.Empty;
         }
 
-        var componentSpan = GetStorage<TComponent>().AsSpan();
-        return ref componentSpan[index];
+        return GetComponents<TComponent>(index..(index + 1));
+    }
+
+    internal Span<TComponent> GetComponents<TComponent>(Range range)
+        where TComponent : IComponent
+    {
+        if (!ComponentStorageDictionary.TryGetValue(typeof(TComponent), out var storage))
+        {
+            return Span<TComponent>.Empty;
+        }
+
+        var (offset, length) = range.GetOffsetAndLength(Count);
+        return ((IComponentStorage<TComponent>)storage).AsSpan().Slice(offset, length);
     }
 
     internal IComponentStorage<TComponent> GetStorage<TComponent>()
@@ -34,15 +48,12 @@ public sealed partial class Archetype
 
         return (IComponentStorage<TComponent>)storage;
     }
-    
+
     public void Dispose()
     {
-        foreach (var storage in ComponentStorageDictionary.Values)
+        foreach (var storage in _componentStorages)
         {
-            if (storage is IDisposable disposableStorage)
-            {
-                disposableStorage.Dispose();
-            }
+            storage.Dispose();
         }
     }
 }

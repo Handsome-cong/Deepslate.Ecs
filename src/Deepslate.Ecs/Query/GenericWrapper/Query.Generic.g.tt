@@ -1,5 +1,6 @@
 ﻿<#@ template language="C#" #>
-<#@ include file="QueryConstants.ttinclude"#><#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Linq" #>
+<#@ include file="../../Constants.ttinclude"#>
 using System.Runtime.CompilerServices;
 
 namespace Deepslate.Ecs.GenericWrapper;
@@ -13,8 +14,8 @@ namespace Deepslate.Ecs.GenericWrapper;
             Enumerable.Range(1, writableGenericParameterCount).Select(i => $"TWritable{i}"));
         writableGenericParameters = writableGenericParameterCount > 0 ? $"<{writableGenericParameters}>" : "";
 
-        var writableGenericParametersWhere = string.Join("\n",
-            Enumerable.Range(1, writableGenericParameterCount).Select(i => $"    where TWritable{i} : IComponent"));
+        var writableGenericParametersWhere = string.Concat(
+            Enumerable.Range(1, writableGenericParameterCount).Select(i => $"    where TWritable{i} : IComponent\n"));
 #>
 public partial struct Writable<#= writableGenericParameters #>
 <#= writableGenericParametersWhere #>{
@@ -54,34 +55,28 @@ public partial struct Writable<#= writableGenericParameters #>
                 dataGenericArguments = $"<{dataGenericArguments}>";
             }
 
-            var currentComponentBundleWritableInitialization = string.Join(",\n",
+            var currentEntityComponentBundleWritableInitialization = string.Join(",\n",
                 Enumerable.Range(1, writableGenericParameterCount)
-                    .Select(i => $"                    WritableComponent{i} = ref Data.CurrentComponent{i}Span[Data.CurrentIndex]"));
+                    .Select(i => $"                WritableComponent{i} = ref Data.CurrentArchetypeDataSpan.Component{i}Span[Data.CurrentIndex]"));
 
-            var currentComponentBundleReadOnlyInitialization = string.Join(",\n",
+            var currentEntityComponentBundleReadOnlyInitialization = string.Join(",\n",
                 Enumerable.Range(1, readOnlyGenericParameterCount)
-                    .Select(i => $"                    ReadOnlyComponent{i} = ref Data.CurrentComponent{i + writableGenericParameterCount}Span[Data.CurrentIndex]"));
+                    .Select(i => $"                ReadOnlyComponent{i} = ref Data.CurrentArchetypeDataSpan.Component{i + writableGenericParameterCount}Span[Data.CurrentIndex]"));
 
-            var currentComponentBundleInitialization = currentComponentBundleWritableInitialization +
-                                                       currentComponentBundleReadOnlyInitialization;
+            var currentEntityComponentBundleInitialization = currentEntityComponentBundleWritableInitialization +
+                                                       currentEntityComponentBundleReadOnlyInitialization;
             if (writableGenericParameterCount > 0 && readOnlyGenericParameterCount > 0)
             {
-                currentComponentBundleInitialization = string.Join(",\n",
-                    currentComponentBundleWritableInitialization,
-                    currentComponentBundleReadOnlyInitialization);
-            }
-            var currentComponentBundleInitializationWithBraces = "";
-            if (writableGenericParameterCount + readOnlyGenericParameterCount > 0)
-            {
-                currentComponentBundleInitializationWithBraces =
-                    $"\n                {{\n{currentComponentBundleInitialization}\n                }}";
+                currentEntityComponentBundleInitialization = string.Join(",\n",
+                    currentEntityComponentBundleWritableInitialization,
+                    currentEntityComponentBundleReadOnlyInitialization);
             }
 
             var writableFields = string.Join("\n", Enumerable.Range(1, writableGenericParameterCount)
-                .Select(i => $"                public ref TWritable{i} WritableComponent{i};"));
+                .Select(i => $"            public ref TWritable{i} WritableComponent{i};"));
 
             var readOnlyFields = string.Join("\n", Enumerable.Range(1, readOnlyGenericParameterCount)
-                .Select(i => $"                public ref readonly TReadOnly{i} ReadOnlyComponent{i};"));
+                .Select(i => $"            public ref readonly TReadOnly{i} ReadOnlyComponent{i};"));
 #>
     public partial struct ReadOnly<#= readOnlyGenericParameters #>
 <#= readOnlyGenericParametersWhere #>    {
@@ -93,25 +88,7 @@ public partial struct Writable<#= writableGenericParameters #>
 <#= readOnlyStorages #>
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public Enumerator GetEnumerator() => new() { Data = new(_query.MatchedArchetypes) };
-
-            public ref struct Enumerator
-            {
-                internal QueryEnumeratorData<#= dataGenericArguments #> Data;
-
-                public ComponentBundle Current => new()<#= currentComponentBundleInitializationWithBraces #>;
-
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public void Reset() => Data.Reset();
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public bool MoveNext() => Data.MoveNext();
-            }
-            
-            public ref struct ComponentBundle
-            {
-<#= writableFields #>
-<#= readOnlyFields #>
-            }
+            public EntityComponentEnumerator GetEnumerator() => new() { Data = new(_query.MatchedArchetypes) };
         }
 
         public readonly struct Query<TArchetypeCommand>(Deepslate.Ecs.Query query)
@@ -123,30 +100,57 @@ public partial struct Writable<#= writableGenericParameters #>
 <#= readOnlyStorages #>
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public Enumerator GetEnumerator() => new() { Data = new(_query.MatchedArchetypes) };
+            public EntityComponentEnumerator<TArchetypeCommand> GetEnumerator() => new() { Data = new(_query.MatchedArchetypes) };
+        }
 
-            public ref struct Enumerator
+        public ref struct EntityComponentEnumerator
+        {
+            internal EntityComponentEnumeratorData<#= dataGenericArguments #> Data;
+
+            public EntityComponentBundle Current => new()
             {
-                internal QueryEnumeratorData<#= dataGenericArguments #> Data;
+                Entity = Data.CurrentArchetypeDataSpan.EntitySpan[Data.CurrentIndex],
+<#= currentEntityComponentBundleInitialization #>
+            };
 
-                public ComponentBundle Current => new()
-                {
-                    ArchetypeCommand = TArchetypeCommand.Create(Data.CurrentArchetype),
-<#= currentComponentBundleInitialization #>
-                };
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Reset() => Data.Reset();
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool MoveNext() => Data.MoveNext();
+        }
 
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public void Reset() => Data.Reset();
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public bool MoveNext() => Data.MoveNext();
-            }
-            
-            public ref struct ComponentBundle
+        public ref struct EntityComponentEnumerator<TArchetypeCommand>
+            where TArchetypeCommand : struct, IArchetypeCommand<TArchetypeCommand>
+        {
+            internal EntityComponentEnumeratorData<#= dataGenericArguments #> Data;
+
+            public EntityComponentBundle<TArchetypeCommand> Current => new()
             {
-                public TArchetypeCommand ArchetypeCommand;
+                ArchetypeCommand = TArchetypeCommand.Create(Data.CurrentArchetype),
+                Entity = Data.CurrentArchetypeDataSpan.EntitySpan[Data.CurrentIndex],
+<#= currentEntityComponentBundleInitialization #>
+            };
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Reset() => Data.Reset();
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool MoveNext() => Data.MoveNext();
+        }
+
+        public ref struct EntityComponentBundle
+        {
+            public Entity Entity;
 <#= writableFields #>
 <#= readOnlyFields #>
-            }
+        }
+
+        public ref struct EntityComponentBundle<TArchetypeCommand>
+            where TArchetypeCommand : struct, IArchetypeCommand<TArchetypeCommand>
+        {
+            public TArchetypeCommand ArchetypeCommand;
+            public Entity Entity;
+<#= writableFields #>
+<#= readOnlyFields #>
         }
     }
 <#

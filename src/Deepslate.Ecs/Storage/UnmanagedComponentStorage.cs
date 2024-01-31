@@ -1,51 +1,46 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Buffers;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Deepslate.Ecs;
 
 namespace Deepslate.Ecs;
 
-internal sealed class UnmanagedComponentStorage<TComponent> : IComponentStorage<TComponent>, IDisposable
+internal sealed class UnmanagedComponentStorage<TComponent>(IComponentPoolFactory poolFactory)
+    : IComponentStorage<TComponent>, IDisposable
     where TComponent : unmanaged, IComponent
 {
-    private const int SizeOfPage = IComponentStorage.SizeOfPage;
+    private readonly IUnmanagedComponentStoragePool _pool = poolFactory.CreateUnmanagedPool<TComponent>();
 
-    private unsafe TComponent* _components = null;
-    private int _length;
+    private IMemoryOwner<byte> _components = EmptyMemoryOwner<byte>.Instance;
 
     public int Count { get; private set; }
 
-    public unsafe Span<TComponent> Add(int count = 1)
+    public void Add(int count = 1)
     {
         var newCount = Count + count;
-        if (newCount > _length)
+        if (newCount > AsSpan().Length)
         {
-            var newLength = (newCount / SizeOfPage + 1) * SizeOfPage;
-            var newComponents = (TComponent*)NativeMemory.Alloc((nuint)(newLength * Unsafe.SizeOf<TComponent>()));
-            Unsafe.CopyBlock(newComponents, _components, (uint)(Count * Unsafe.SizeOf<TComponent>()));
-            NativeMemory.Free(_components);
+            var newComponents = _pool.Rent(newCount);
+            _components.Memory.CopyTo(newComponents.Memory);
+            _pool.Return(_components);
             _components = newComponents;
-            _length = newLength;
         }
 
         Count = newCount;
-        return new Span<TComponent>(_components + Count - count, count);
     }
 
-    public unsafe Span<TComponent> Pop(int count = 1)
+    public void Pop(int count = 1)
     {
         if (count > 0)
         {
             Count -= count;
         }
-
-        return new Span<TComponent>(_components + Count, count);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public unsafe Span<TComponent> AsSpan() => new(_components, Count);
+    public Span<TComponent> AsSpan() => MemoryMarshal.Cast<byte, TComponent>(_components.Memory.Span);
 
-    public unsafe void Dispose()
+    public void Dispose()
     {
-        NativeMemory.Free(_components);
+        _pool.Return(_components);
     }
 }
