@@ -1,4 +1,4 @@
-Deepslate.Ecs is a Entity Component System (ECS) library implemented in C# for Unity.
+Deepslate.Ecs is a Entity Component System (ECS) library implemented in C#.
 It is designed to be fast, flexible and easy to use.
 
 **warning:** This library is still in development and is far from being ready for production.
