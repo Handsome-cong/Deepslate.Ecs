@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 namespace Deepslate.Ecs;
 
 public interface IManagedComponentStoragePool<TComponent> : IDisposable
-    where TComponent : IComponent
+    where TComponent : IComponentData
 {
     IMemoryOwner<TComponent> Rent(int minimumLength);
     void Return(IMemoryOwner<TComponent> memory);
@@ -16,24 +16,24 @@ public interface IUnmanagedComponentStoragePool : IDisposable
     void Return(IMemoryOwner<byte> memory);
 }
 
-public interface IComponentPoolFactory
+public interface IComponentDataPoolFactory
 {
-    IManagedComponentStoragePool<TComponent> CreateManagedPool<TComponent>() where TComponent : IComponent;
+    IManagedComponentStoragePool<TComponent> CreateManagedPool<TComponent>() where TComponent : IComponentData;
 
     IUnmanagedComponentStoragePool CreateUnmanagedPool<TComponent>()
-        where TComponent : unmanaged, IComponent;
+        where TComponent : unmanaged, IComponentData;
 }
 
-internal sealed class DefaultComponentPoolFactory : IComponentPoolFactory
+internal sealed class DefaultComponentPoolFactory : IComponentDataPoolFactory
 {
     public IManagedComponentStoragePool<TComponent> CreateManagedPool<TComponent>()
-        where TComponent : IComponent => new DefaultManagedComponentStoragePool<TComponent>();
+        where TComponent : IComponentData => new DefaultManagedComponentStoragePool<TComponent>();
 
     public IUnmanagedComponentStoragePool CreateUnmanagedPool<TComponent>()
-        where TComponent : unmanaged, IComponent => new DefaultUnmanagedComponentStoragePool<TComponent>();
+        where TComponent : unmanaged, IComponentData => new DefaultUnmanagedComponentStoragePool<TComponent>();
 
     private sealed class DefaultManagedComponentStoragePool<TComponent> : IManagedComponentStoragePool<TComponent>
-        where TComponent : IComponent
+        where TComponent : IComponentData
     {
         public IMemoryOwner<TComponent> Rent(int minimumLength) => MemoryPool<TComponent>.Shared.Rent(minimumLength);
 
@@ -51,7 +51,7 @@ internal sealed class DefaultComponentPoolFactory : IComponentPoolFactory
     }
 
     private sealed class DefaultUnmanagedComponentStoragePool<TComponent> : IUnmanagedComponentStoragePool
-        where TComponent : unmanaged, IComponent
+        where TComponent : unmanaged, IComponentData
     {
         public IMemoryOwner<byte> Rent(int minimumLength)
         {

@@ -4,9 +4,9 @@ using System.Runtime.InteropServices;
 
 namespace Deepslate.Ecs;
 
-internal sealed class UnmanagedComponentStorage<TComponent>(IComponentPoolFactory poolFactory)
-    : IComponentStorage<TComponent>, IDisposable
-    where TComponent : unmanaged, IComponent
+internal sealed class UnmanagedComponentStorage<TComponent>(IComponentDataPoolFactory poolFactory)
+    : IComponentDataStorage<TComponent>
+    where TComponent : unmanaged, IComponentData
 {
     private readonly IUnmanagedComponentStoragePool _pool = poolFactory.CreateUnmanagedPool<TComponent>();
 

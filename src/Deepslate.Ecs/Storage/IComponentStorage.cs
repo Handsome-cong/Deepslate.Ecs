@@ -1,6 +1,6 @@
 ﻿namespace Deepslate.Ecs;
 
-internal interface IComponentStorage : IDisposable
+internal interface IComponentDataStorage : IDisposable
 {
     /// <summary>
     /// The size of expanded space when the space isn't enough.
@@ -20,10 +20,10 @@ internal interface IComponentStorage : IDisposable
     void RemoveMany(int[] sortedIndices);
 }
 
-internal interface IComponentStorage<TComponent> : IComponentStorage
-    where TComponent : IComponent
+internal interface IComponentDataStorage<TComponent> : IComponentDataStorage
+    where TComponent : IComponentData
 {
-    Type IComponentStorage.ComponentType => typeof(TComponent);
+    Type IComponentDataStorage.ComponentType => typeof(TComponent);
 
     new void Add(int count = 1);
     new void Pop(int count = 1);
@@ -32,10 +32,10 @@ internal interface IComponentStorage<TComponent> : IComponentStorage
 
     ref TComponent this[int index] => ref AsSpan()[index];
 
-    void IComponentStorage.Add(int count) => Add(count);
-    void IComponentStorage.Pop(int count) => Pop(count);
+    void IComponentDataStorage.Add(int count) => Add(count);
+    void IComponentDataStorage.Pop(int count) => Pop(count);
 
-    void IComponentStorage.Remove(int index)
+    void IComponentDataStorage.Remove(int index)
     {
         var count = Count;
         if (index < 0 || index >= count)
@@ -52,7 +52,7 @@ internal interface IComponentStorage<TComponent> : IComponentStorage
         Pop();
     }
 
-    void IComponentStorage.RemoveMany(int[] sortedIndices)
+    void IComponentDataStorage.RemoveMany(int[] sortedIndices)
     {
         if (sortedIndices.Length == 0)
         {

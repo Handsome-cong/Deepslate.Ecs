@@ -5,48 +5,64 @@ namespace Deepslate.Ecs;
 public sealed partial class Archetype
 {
     private readonly Type[] _componentTypes;
-    private readonly IComponentStorage[] _componentStorages;
+    private readonly IComponentDataStorage[] _componentStorages;
 
-    internal FrozenDictionary<Type, IComponentStorage> ComponentStorageDictionary { get; }
+    internal FrozenDictionary<Type, IComponentDataStorage> ComponentStorageDictionary { get; }
 
-    public IEnumerable<Type> ComponentTypes => _componentTypes;
+    public IReadOnlyList<Type> ComponentTypes => _componentTypes;
     
     public bool ContainsComponent<TComponent>()
-        where TComponent : IComponent => ComponentStorageDictionary.ContainsKey(typeof(TComponent));
+        where TComponent : IComponentData => ComponentStorageDictionary.ContainsKey(typeof(TComponent));
+    
+    public int ComponentTypesHashCode { get; }
 
-    internal Span<TComponent> GetComponent<TComponent>(Entity entity)
-        where TComponent : IComponent
+    internal ref TComponent GetComponent<TComponent>(Entity entity)
+        where TComponent : IComponentData
     {
         var index = _entities.IndexOf(entity);
         if (index == EntityStorage.NoIndex)
         {
-            return Span<TComponent>.Empty;
+            throw new ArgumentOutOfRangeException(nameof(TComponent), "Component does not exist in this archetype.");
         }
 
-        return GetComponents<TComponent>(index..(index + 1));
+        return ref GetComponents<TComponent>(index..(index + 1))[0];
+    }
+
+    internal bool TryGetComponent<TComponent>(Entity entity, out Span<TComponent> component)
+        where TComponent : IComponentData
+    {
+        var index = _entities.IndexOf(entity);
+        if (index == EntityStorage.NoIndex)
+        {
+            component = Span<TComponent>.Empty;
+            return false;
+        }
+
+        component = GetComponents<TComponent>(index..(index + 1));
+        return true;
     }
 
     internal Span<TComponent> GetComponents<TComponent>(Range range)
-        where TComponent : IComponent
-    {
-        if (!ComponentStorageDictionary.TryGetValue(typeof(TComponent), out var storage))
-        {
-            return Span<TComponent>.Empty;
-        }
-
-        var (offset, length) = range.GetOffsetAndLength(Count);
-        return ((IComponentStorage<TComponent>)storage).AsSpan().Slice(offset, length);
-    }
-
-    internal IComponentStorage<TComponent> GetStorage<TComponent>()
-        where TComponent : IComponent
+        where TComponent : IComponentData
     {
         if (!ComponentStorageDictionary.TryGetValue(typeof(TComponent), out var storage))
         {
             throw new ArgumentOutOfRangeException(nameof(TComponent), "Component does not exist in this archetype.");
         }
 
-        return (IComponentStorage<TComponent>)storage;
+        var (offset, length) = range.GetOffsetAndLength(Count);
+        return ((IComponentDataStorage<TComponent>)storage).AsSpan().Slice(offset, length);
+    }
+
+    internal IComponentDataStorage<TComponent> GetStorage<TComponent>()
+        where TComponent : IComponentData
+    {
+        if (!ComponentStorageDictionary.TryGetValue(typeof(TComponent), out var storage))
+        {
+            throw new ArgumentOutOfRangeException(nameof(TComponent), "Component does not exist in this archetype.");
+        }
+
+        return (IComponentDataStorage<TComponent>)storage;
     }
 
     public void Dispose()

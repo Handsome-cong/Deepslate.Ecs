@@ -65,9 +65,12 @@ public readonly struct InstantArchetypeCommand : IArchetypeCommand<InstantArchet
     /// A <see cref="Span{T}"/> with length 1 that references the component,
     /// or an empty <see cref="Span{T}"/> if the entity or the component does not exist.
     /// </returns>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Thrown if <typeparamref name="TComponent"/> does not exist in this archetype.
+    /// </exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Span<TComponent> GetComponent<TComponent>(Entity entity)
-        where TComponent : IComponent => Archetype.GetComponent<TComponent>(entity);
+    public ref TComponent GetComponent<TComponent>(Entity entity)
+        where TComponent : IComponentData => ref Archetype.GetComponent<TComponent>(entity);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static InstantArchetypeCommand IArchetypeCommand<InstantArchetypeCommand>.Create(Archetype archetype) =>

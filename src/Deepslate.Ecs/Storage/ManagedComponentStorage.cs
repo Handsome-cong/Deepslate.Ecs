@@ -2,9 +2,9 @@
 
 namespace Deepslate.Ecs;
 
-internal sealed class ManagedComponentStorage<TComponent> (IComponentPoolFactory poolFactory)
-    : IComponentStorage<TComponent>, IDisposable
-    where TComponent : IComponent
+internal sealed class ManagedComponentStorage<TComponent> (IComponentDataPoolFactory poolFactory)
+    : IComponentDataStorage<TComponent>
+    where TComponent : IComponentData
 {
     private readonly IManagedComponentStoragePool<TComponent> _pool = poolFactory.CreateManagedPool<TComponent>();
     private IMemoryOwner<TComponent> _components = EmptyMemoryOwner<TComponent>.Instance;

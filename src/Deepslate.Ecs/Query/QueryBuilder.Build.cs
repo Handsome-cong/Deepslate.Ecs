@@ -1,24 +1,61 @@
-﻿namespace Deepslate.Ecs;
+﻿using System.Diagnostics.Contracts;
+
+namespace Deepslate.Ecs;
 
 public partial class QueryBuilder
 {
-    public Query Build()
+    /// <summary>
+    /// Call this to complete the query configuration and register it to the system.
+    /// As long as this method is called, the operations on this builder will not affect the query anymore.
+    /// </summary>
+    /// <param name="registeredQuery">
+    /// The query that has been configured and registered.
+    /// </param>
+    /// <seealso cref="Result"/>
+    public TickSystemBuilder Build(out Query registeredQuery)
     {
-        var matchedArchetypes = GetMatchedArchetypes();
+        if (Result is not null)
+        {
+            registeredQuery = Result;
+        }
 
-        var result = new Query(
-            matchedArchetypes,
-            RequiredWritableComponentTypes.ToArray());
+        var query = new Query(
+            GetMatchedArchetypes(),
+            RequiredWritableComponentTypes,
+            RequiredReadOnlyComponentTypes,
+            _requireInstantArchetypeCommand);
 
-        return result;
+        Result = query;
+        registeredQuery = query;
+        TickSystemBuilder.RegisterQuery(query);
+        return TickSystemBuilder;
     }
 
     private Archetype[] GetMatchedArchetypes()
     {
-        var allArchetypes = World.Archetypes;
-        var componentTypeToArchetypeIndices = World.ComponentTypeToArchetypeIndices;
-        Span<int> counters = new int[allArchetypes.Count];
+        var worldBuilder = TickSystemBuilder.StageBuilder.WorldBuilder;
+        var allArchetypes = worldBuilder.Archetypes;
+        var componentTypeToArchetypeIndices = worldBuilder.ComponentTypeToArchetypeIds;
+        var counters = new int[allArchetypes.Count];
         foreach (var componentType in RequiredWritableComponentTypes)
+        {
+            var indices = componentTypeToArchetypeIndices[componentType];
+            foreach (var index in indices)
+            {
+                counters[index]++;
+            }
+        }
+
+        foreach (var componentType in RequiredReadOnlyComponentTypes)
+        {
+            var indices = componentTypeToArchetypeIndices[componentType];
+            foreach (var index in indices)
+            {
+                counters[index]++;
+            }
+        }
+
+        foreach (var componentType in IncludedComponentTypes)
         {
             var indices = componentTypeToArchetypeIndices[componentType];
             foreach (var index in indices)
@@ -36,18 +73,19 @@ public partial class QueryBuilder
             }
         }
 
-        var requiredComponentTypeCount = RequiredWritableComponentTypes.Count;
+        var requiredComponentTypeCount =
+            RequiredWritableComponentTypes.Count + RequiredReadOnlyComponentTypes.Count + IncludedComponentTypes.Count;
         List<int> matchedIndices = [];
-        for (int index = 0; index < counters.Length; index++)
+        for (var index = 0; index < counters.Length; index++)
         {
-            if (counters[index] == requiredComponentTypeCount && Filters.All(filter => filter(allArchetypes[index])))
+            if (counters[index] == requiredComponentTypeCount && (_filter?.Invoke(allArchetypes[index]) ?? true))
             {
                 matchedIndices.Add(index);
             }
         }
 
         var result = new Archetype[matchedIndices.Count];
-        for (int index = 0; index < matchedIndices.Count; index++)
+        for (var index = 0; index < matchedIndices.Count; index++)
         {
             result[index] = allArchetypes[matchedIndices[index]];
         }

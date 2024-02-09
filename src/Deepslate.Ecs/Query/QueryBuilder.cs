@@ -1,26 +1,25 @@
 ﻿using Deepslate.Ecs.GenericWrapper;
+using Deepslate.Ecs.Util;
 
 namespace Deepslate.Ecs;
 
-public partial class QueryBuilder(World world)
+public partial class QueryBuilder
 {
-    private World World { get; } = world;
-
     private List<Type> RequiredWritableComponentTypes { get; } = [];
     private List<Type> RequiredReadOnlyComponentTypes { get; } = [];
     private List<Type> IncludedComponentTypes { get; } = [];
     private List<Type> ExcludedComponentTypes { get; } = [];
-    private List<Func<Archetype, bool>> Filters { get; } = [];
     private ArchetypeCommandType ArchetypeCommandType { get; set; } = ArchetypeCommandType.None;
 
-    public QueryBuilder(QueryBuilder other)
-        : this(other.World)
+    private Func<Archetype, bool>? _filter; 
+    private bool _requireInstantArchetypeCommand = false;
+
+    public Query? Result { get; private set; }
+    public TickSystemBuilder TickSystemBuilder { get; }
+
+    internal QueryBuilder(TickSystemBuilder tickSystemBuilder)
     {
-        RequiredWritableComponentTypes.AddRange(other.RequiredWritableComponentTypes);
-        RequiredReadOnlyComponentTypes.AddRange(other.RequiredReadOnlyComponentTypes);
-        IncludedComponentTypes.AddRange(other.IncludedComponentTypes);
-        ExcludedComponentTypes.AddRange(other.ExcludedComponentTypes);
-        Filters.AddRange(other.Filters);
+        TickSystemBuilder = tickSystemBuilder;
     }
 
     public QueryBuilder RequireWritable(Type type)
@@ -53,15 +52,19 @@ public partial class QueryBuilder(World world)
 
     public QueryBuilder WithFilter(Func<Archetype, bool> predicate)
     {
-        Filters.Add(predicate);
+        _filter = predicate;
         return this;
     }
 
-    public QueryBuilder RequireArchetypeCommand(ArchetypeCommandType requirement)
+    public QueryBuilder RequireInstantArchetypeCommand()
     {
-        ArchetypeCommandType = requirement;
+        _requireInstantArchetypeCommand = true;
         return this;
     }
+
+    public Writable.ReadOnly.QueryBuilder AsGeneric() => new(this);
+
+    public static implicit operator Writable.ReadOnly.QueryBuilder(QueryBuilder self) => new(self);
 }
 
 /// <summary>
@@ -69,20 +72,18 @@ public partial class QueryBuilder(World world)
 /// </summary>
 public static class QueryBuilderExtensions
 {
-    public static Writable<TWritable>.ReadOnly.QueryBuilder RequireWritable<TWritable>(this QueryBuilder self)
-        where TWritable : IComponent => new(self.RequireWritable(typeof(TWritable)));
-    
-    public static Writable<TWritable>.ReadOnly.QueryBuilder RequireReadOnly<TWritable>(this QueryBuilder self)
-        where TWritable : IComponent => new(self.RequireReadOnly(typeof(TWritable)));
-    
-    public static Writable.ReadOnly.QueryBuilder With<TWritable>(this QueryBuilder self)
-        where TWritable : IComponent => new(self.With(typeof(TWritable)));
-    
-    public static Writable.ReadOnly.QueryBuilder Without<TWritable>(this QueryBuilder self)
-        where TWritable : IComponent => new(self.Without(typeof(TWritable)));
-    
-    public static Writable.ReadOnly.QueryBuilder WithFilter(this QueryBuilder self, Func<Archetype, bool> predicate)
-        => new(self.WithFilter(predicate));
-    
-    
+    public static QueryBuilder RequireWritable<TWritable>(this QueryBuilder self)
+        where TWritable : IComponentData => self.RequireWritable(typeof(TWritable));
+
+    public static QueryBuilder RequireReadOnly<TWritable>(this QueryBuilder self)
+        where TWritable : IComponentData => self.RequireReadOnly(typeof(TWritable));
+
+    public static QueryBuilder With<TWritable>(this QueryBuilder self)
+        where TWritable : IComponentData => self.With(typeof(TWritable));
+
+    public static QueryBuilder Without<TWritable>(this QueryBuilder self)
+        where TWritable : IComponentData => self.Without(typeof(TWritable));
+
+    public static QueryBuilder WithFilter(this QueryBuilder self, Func<Archetype, bool> predicate)
+        => self.WithFilter(predicate);
 }

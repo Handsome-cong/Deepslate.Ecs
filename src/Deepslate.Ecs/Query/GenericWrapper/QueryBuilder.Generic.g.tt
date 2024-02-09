@@ -13,7 +13,7 @@ namespace Deepslate.Ecs.GenericWrapper;
         writableGenericParameters = writableGenericParameterCount > 0 ? $"<{writableGenericParameters}>" : "";
 
         var writableGenericParametersWhere = string.Join("\n",
-            Enumerable.Range(1, writableGenericParameterCount).Select(i => $"    where TWritable{i} : IComponent"));
+            Enumerable.Range(1, writableGenericParameterCount).Select(i => $"    where TWritable{i} : IComponentData"));
 #>
 public partial struct Writable<#= writableGenericParameters #>
 <#= writableGenericParametersWhere #>{
@@ -27,7 +27,7 @@ public partial struct Writable<#= writableGenericParameters #>
 
             var readOnlyGenericParametersWhere = string.Join("\n",
                 Enumerable.Range(1, readOnlyGenericParameterCount)
-                    .Select(i => $"        where TReadOnly{i} : IComponent"));
+                    .Select(i => $"        where TReadOnly{i} : IComponentData"));
             
             var writablePartResultOfRequireWritable = string.Join(", ",
                 Enumerable.Range(1, writableGenericParameterCount + 1)
@@ -38,12 +38,7 @@ public partial struct Writable<#= writableGenericParameters #>
                 Enumerable.Range(1, readOnlyGenericParameterCount)
                     .Select(i=> $"TReadOnly{i}"));
             readOnlyPartResultOfRequireWritable = readOnlyGenericParameterCount > 0 ? $"<{readOnlyPartResultOfRequireWritable}>" : "";
-            
-            var writablePartResultOfRequireReadOnly = string.Join(", ",
-                Enumerable.Range(1, writableGenericParameterCount)
-                    .Select(i=> $"TWritable{i}"));
-            writablePartResultOfRequireReadOnly = writableGenericParameterCount > 0 ? $"<{writablePartResultOfRequireReadOnly}>" : "";
-            
+
             var readOnlyPartResultOfRequireReadOnly = string.Join(", ",
                 Enumerable.Range(1, readOnlyGenericParameterCount + 1)
                     .Select(i=> $"TReadOnly{i}"));
@@ -56,83 +51,50 @@ public partial struct Writable<#= writableGenericParameters #>
 <#= readOnlyGenericParametersWhere #>    {
         public readonly struct QueryBuilder(Deepslate.Ecs.QueryBuilder builder)
         {
-            public Deepslate.Ecs.QueryBuilder Builder { get; } = builder;
+            public Deepslate.Ecs.QueryBuilder TypelessBuilder { get; } = builder;
 
             public QueryBuilder With<TComponent>()
-                where TComponent : IComponent =>
-                new(Builder.With(typeof(TComponent)));
+                where TComponent : IComponentData =>
+                new(TypelessBuilder.With(typeof(TComponent)));
 
             public QueryBuilder Without<TComponent>()
-                where TComponent : IComponent =>
-                new(Builder.Without(typeof(TComponent)));
+                where TComponent : IComponentData =>
+                new(TypelessBuilder.Without(typeof(TComponent)));
 
             public QueryBuilder WithFilter(Func<Archetype, bool> predicate) =>
-                new(Builder.WithFilter(predicate));
+                new(TypelessBuilder.WithFilter(predicate));
 
             public QueryBuilder RequireInstantArchetypeCommand() =>
-                new(Builder.RequireArchetypeCommand(ArchetypeCommandType.Instant));
+                new(TypelessBuilder.RequireInstantArchetypeCommand());
 
-            public QueryBuilder RequireDeferredArchetypeCommand() =>
-                new(Builder.RequireArchetypeCommand(ArchetypeCommandType.Deferred));
 <#
             if (writableGenericParameterCount < MaxGenericParameters)
             {
 #>
             public Writable<#= writablePartResultOfRequireWritable #>.ReadOnly<#= readOnlyPartResultOfRequireWritable #>.QueryBuilder RequireWritable<<#= nextWritableGenericParameter #>>()
-                where <#= nextWritableGenericParameter #> : IComponent =>
-                new(Builder.RequireWritable(typeof(<#= nextWritableGenericParameter #>)));
+                where <#= nextWritableGenericParameter #> : IComponentData =>
+                new(TypelessBuilder.RequireWritable(typeof(<#= nextWritableGenericParameter #>)));
+
 <#
             }
             if (readOnlyGenericParameterCount < MaxGenericParameters)
             {
 #>
             public ReadOnly<#= readOnlyPartResultOfRequireReadOnly #>.QueryBuilder RequireReadOnly<<#= nextReadOnlyGenericParameter #>>()
-                where <#= nextReadOnlyGenericParameter #> : IComponent =>
-                new(Builder.RequireReadOnly(typeof(<#= nextReadOnlyGenericParameter #>)));
+                where <#= nextReadOnlyGenericParameter #> : IComponentData =>
+                new(TypelessBuilder.RequireReadOnly(typeof(<#= nextReadOnlyGenericParameter #>)));
+
 <#
             }
 #>
-        }
-
-        public readonly struct QueryBuilder<TArchetypeCommand>(Deepslate.Ecs.QueryBuilder builder)
-            where TArchetypeCommand : struct, IArchetypeCommand<TArchetypeCommand>
-        {
-            public Deepslate.Ecs.QueryBuilder Builder { get; } = builder;
-
-            public QueryBuilder With<TComponent>()
-                where TComponent : IComponent =>
-                new(Builder.With(typeof(TComponent)));
-
-            public QueryBuilder Without<TComponent>()
-                where TComponent : IComponent =>
-                new(Builder.Without(typeof(TComponent)));
-
-            public QueryBuilder WithFilter(Func<Archetype, bool> predicate) =>
-                new(Builder.WithFilter(predicate));
-
-            public QueryBuilder<InstantArchetypeCommand> RequireInstantArchetypeCommand() =>
-                new(Builder.RequireArchetypeCommand(ArchetypeCommandType.Instant));
-
-            public QueryBuilder<DeferredArchetypeCommand> RequireDeferredArchetypeCommand() =>
-                new(Builder.RequireArchetypeCommand(ArchetypeCommandType.Deferred));
-<#
-            if (writableGenericParameterCount < MaxGenericParameters)
+            public TickSystemBuilder Build(out Query registeredQuery)
             {
-#>
-            public Writable<#= writablePartResultOfRequireWritable #>.ReadOnly<#= readOnlyPartResultOfRequireWritable #>.QueryBuilder RequireWritable<<#= nextWritableGenericParameter #>>()
-                where <#= nextWritableGenericParameter #> : IComponent =>
-                new(Builder.RequireWritable(typeof(<#= nextWritableGenericParameter #>)));
-<#
+                var tickSystemBuilder = TypelessBuilder.Build(out var query);
+                registeredQuery = new(query);
+                return tickSystemBuilder;
             }
-            if (readOnlyGenericParameterCount < MaxGenericParameters)
-            {
-#>
-            public ReadOnly<#= readOnlyPartResultOfRequireReadOnly #>.QueryBuilder RequireReadOnly<<#= nextReadOnlyGenericParameter #>>()
-                where <#= nextReadOnlyGenericParameter #> : IComponent =>
-                new(Builder.RequireReadOnly(typeof(<#= nextReadOnlyGenericParameter #>)));
-<#
-            }
-#>
+
+            public static implicit operator Deepslate.Ecs.QueryBuilder(QueryBuilder self) => self.TypelessBuilder;
         }
     }
 <#

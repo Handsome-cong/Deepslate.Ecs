@@ -67,7 +67,7 @@ public readonly struct Entity : IEquatable<Entity>, IEqualityOperators<Entity, E
     public override string ToString() => Value.ToString();
 }
 
-internal record struct ComponentizedEntity(Entity Entity) : IComponent
+internal record struct ComponentizedEntity(Entity Entity) : IComponentData
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator Entity(ComponentizedEntity componentizedEntity) => componentizedEntity.Entity;

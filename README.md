@@ -22,3 +22,7 @@ It is designed to be fast, flexible and easy to use.
 - [ ] `World` for managing entities, components and systems
   - [x] `WorldBuilder` for fluent world configuration
 - [ ] `Scheduler` for running systems in parallel
+
+## Api Naming Conventions
+- `With` prefix for methods that add or overwrite something, if the arguments of multiple calls are the same or partially the same.
+- `Add` prefix for methods that may add something multiple times, even if the arguments are the same.

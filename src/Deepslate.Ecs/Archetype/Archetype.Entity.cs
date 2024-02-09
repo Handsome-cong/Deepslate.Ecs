@@ -74,7 +74,7 @@ public sealed partial class Archetype
         }
         else
         {
-            entity = new Entity(_maxEntityId++, (ushort)Id, 0);
+            entity = new Entity(_maxEntityId++, Id, 0);
         }
 
         _ = _entities.AddEntity(entity);
@@ -112,7 +112,7 @@ public sealed partial class Archetype
 
         for (; currentEntityCount < count; ++currentEntityCount)
         {
-            entities[currentEntityCount] = new Entity(_maxEntityId++, (ushort)Id, 0);
+            entities[currentEntityCount] = new Entity(_maxEntityId++, Id, 0);
         }
 
         foreach (var entity in entities)

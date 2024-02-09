@@ -15,7 +15,7 @@ namespace Deepslate.Ecs.GenericWrapper;
         writableGenericParameters = writableGenericParameterCount > 0 ? $"<{writableGenericParameters}>" : "";
 
         var writableGenericParametersWhere = string.Concat(
-            Enumerable.Range(1, writableGenericParameterCount).Select(i => $"    where TWritable{i} : IComponent\n"));
+            Enumerable.Range(1, writableGenericParameterCount).Select(i => $"    where TWritable{i} : IComponentData\n"));
 #>
 public partial struct Writable<#= writableGenericParameters #>
 <#= writableGenericParametersWhere #>{
@@ -29,13 +29,13 @@ public partial struct Writable<#= writableGenericParameters #>
 
             var readOnlyGenericParametersWhere = string.Concat(
                 Enumerable.Range(1, readOnlyGenericParameterCount)
-                    .Select(i => $"        where TReadOnly{i} : IComponent\n"));
+                    .Select(i => $"        where TReadOnly{i} : IComponentData\n"));
 
             var writableStorages = string.Join("\n", Enumerable.Range(1, writableGenericParameterCount)
-                .Select(i => $"            private readonly IComponentStorage<TWritable{i}>[] _writeable{i}Storages = query.GetStorages<TWritable{i}>();"));
+                .Select(i => $"            private readonly IComponentDataStorage<TWritable{i}>[] _writeable{i}Storages = query.GetStorages<TWritable{i}>();"));
 
             var readOnlyStorages = string.Join("\n", Enumerable.Range(1, readOnlyGenericParameterCount)
-                .Select(i => $"            private readonly IComponentStorage<TReadOnly{i}>[] _readOnly{i}Storages = query.GetStorages<TReadOnly{i}>();"));
+                .Select(i => $"            private readonly IComponentDataStorage<TReadOnly{i}>[] _readOnly{i}Storages = query.GetStorages<TReadOnly{i}>();"));
 
             var dataWritableGenericArguments = string.Join(", ", Enumerable.Range(1, writableGenericParameterCount)
                 .Select(i => $"TWritable{i}"));
@@ -82,25 +82,15 @@ public partial struct Writable<#= writableGenericParameters #>
 <#= readOnlyGenericParametersWhere #>    {
         public readonly struct Query(Deepslate.Ecs.Query query)
         {
-            private readonly Deepslate.Ecs.Query _query = query;
+            public readonly Deepslate.Ecs.Query TypelessQuery = query;
 
 <#= writableStorages #>
 <#= readOnlyStorages #>
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public EntityComponentEnumerator GetEnumerator() => new() { Data = new(_query.MatchedArchetypes) };
-        }
+            public EntityComponentEnumerator GetEnumerator() => new() { Data = new(TypelessQuery.MatchedArchetypes) };
 
-        public readonly struct Query<TArchetypeCommand>(Deepslate.Ecs.Query query)
-            where TArchetypeCommand : struct, IArchetypeCommand<TArchetypeCommand>
-        {
-            private readonly Deepslate.Ecs.Query _query = query;
-
-<#= writableStorages #>
-<#= readOnlyStorages #>
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public EntityComponentEnumerator<TArchetypeCommand> GetEnumerator() => new() { Data = new(_query.MatchedArchetypes) };
+            public static implicit operator Deepslate.Ecs.Query(Query self) => self.TypelessQuery;
         }
 
         public ref struct EntityComponentEnumerator

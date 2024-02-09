@@ -11,7 +11,7 @@ namespace Deepslate.Ecs.GenericWrapper;
         genericParameters = genericParameterCount > 0 ? $"<{genericParameters}>" : "";
 
         var genericParametersWhere = string.Concat(Enumerable.Range(1, genericParameterCount)
-            .Select(i => $"    where TComponent{i} : IComponent\n"));
+            .Select(i => $"    where TComponent{i} : IComponentData\n"));
 
         var spans = string.Concat(Enumerable.Range(1, genericParameterCount)
             .Select(i => $"    public readonly Span<TComponent{i}> Component{i}Span = Span<TComponent{i}>.Empty;\n"));

@@ -8,8 +8,6 @@ public sealed partial class Archetype
     private readonly ConcurrentBag<CreationCommand> _creationCommandsEndOfTick = [];
     private readonly ConcurrentBag<DestructionCommand> _destructionCommandsEndOfStage = [];
     private readonly ConcurrentBag<DestructionCommand> _destructionCommandsEndOfTick = [];
-
-    // TODO: Execute commands
     
     internal void AddCreationCommand(
         Action<EntityComponentAccessor>? initializer,
@@ -44,6 +42,18 @@ public sealed partial class Archetype
             default:
                 throw new ArgumentOutOfRangeException(nameof(timing), timing, "Invalid timing.");
         }
+    }
+
+    internal void ExecuteEndOfStageCommands()
+    {
+        ExecuteDestructionCommands(_destructionCommandsEndOfStage);
+        ExecuteCreationCommands(_creationCommandsEndOfStage);
+    }
+    
+    internal void ExecuteEndOfTickCommands()
+    {
+        ExecuteDestructionCommands(_destructionCommandsEndOfTick);
+        ExecuteCreationCommands(_creationCommandsEndOfTick);
     }
 
     private void ExecuteDestructionCommands(ConcurrentBag<DestructionCommand> destructionCommands)

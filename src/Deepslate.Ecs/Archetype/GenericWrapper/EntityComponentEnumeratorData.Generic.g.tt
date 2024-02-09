@@ -13,7 +13,7 @@ namespace Deepslate.Ecs.GenericWrapper;
         genericParameters = genericParameterCount > 0 ? $"<{genericParameters}>" : "";
 
         var genericParametersWhere = string.Concat(Enumerable.Range(1, genericParameterCount)
-            .Select(i => $"    where TComponent{i} : IComponent\n"));
+            .Select(i => $"    where TComponent{i} : IComponentData\n"));
 #>
 internal ref struct EntityComponentEnumeratorData<#= genericParameters #>
 <#= genericParametersWhere #>{
@@ -24,7 +24,18 @@ internal ref struct EntityComponentEnumeratorData<#= genericParameters #>
     private int _currentIndex = -1;
 
     public int CurrentIndex => _currentIndex;
-    public Archetype CurrentArchetype { get; private set; } = Archetype.Empty;
+    public Archetype CurrentArchetype 
+    {
+        get
+        {
+            if (_currentArchetypeIndex >= 0 && _currentArchetypeIndex < _archetypes.Length)
+            {
+                return _archetypes[_currentArchetypeIndex];
+            }
+            
+            return Archetype.Empty;
+        }
+    }
 
     internal EntityComponentEnumeratorData(IEnumerable<Archetype> archetypes)
     {
@@ -43,7 +54,6 @@ internal ref struct EntityComponentEnumeratorData<#= genericParameters #>
         var success = _currentArchetypeIndex < _archetypes.Length;
         if (success)
         {
-            CurrentArchetype = _archetypes[_currentArchetypeIndex];
             CurrentArchetypeDataSpan = new(CurrentArchetype, ..);
         }
 
