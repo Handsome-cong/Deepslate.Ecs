@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace Deepslate.Ecs.Util;
 
@@ -8,6 +9,7 @@ internal static class ArrayFactory
         Dictionary<Type, Func<IEnumerable<IComponentDataStorage>, IReadOnlyList<IComponentDataStorage>>>
         StorageArrayFactories = [];
 
+    [MethodImpl(MethodImplOptions.Synchronized)]
     internal static void RegisterStorageArrayFactory<TComponent>()
         where TComponent : IComponentData
     {
@@ -16,6 +18,7 @@ internal static class ArrayFactory
             storages => storages.Cast<IComponentDataStorage<TComponent>>().ToArray());
     }
 
+    [MethodImpl(MethodImplOptions.Synchronized)]
     internal static void RegisterStorageArrayFactory(Type type)
     {
         Guard.IsComponent(type);

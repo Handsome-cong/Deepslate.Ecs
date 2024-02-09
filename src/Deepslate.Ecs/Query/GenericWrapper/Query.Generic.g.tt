@@ -88,36 +88,25 @@ public partial struct Writable<#= writableGenericParameters #>
 <#= readOnlyStorages #>
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public EntityComponentEnumerator GetEnumerator() => new() { Data = new(TypelessQuery.MatchedArchetypes) };
+            public EntityComponentEnumerator GetEnumerator() => new() 
+            {
+                Data = new(TypelessQuery.MatchedArchetypes),
+                RequireInstantArchetypeCommand = TypelessQuery.RequireInstantArchetypeCommand
+            };
 
             public static implicit operator Deepslate.Ecs.Query(Query self) => self.TypelessQuery;
         }
 
         public ref struct EntityComponentEnumerator
         {
+            internal bool RequireInstantArchetypeCommand;
             internal EntityComponentEnumeratorData<#= dataGenericArguments #> Data;
 
             public EntityComponentBundle Current => new()
             {
                 Entity = Data.CurrentArchetypeDataSpan.EntitySpan[Data.CurrentIndex],
-<#= currentEntityComponentBundleInitialization #>
-            };
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Reset() => Data.Reset();
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool MoveNext() => Data.MoveNext();
-        }
-
-        public ref struct EntityComponentEnumerator<TArchetypeCommand>
-            where TArchetypeCommand : struct, IArchetypeCommand<TArchetypeCommand>
-        {
-            internal EntityComponentEnumeratorData<#= dataGenericArguments #> Data;
-
-            public EntityComponentBundle<TArchetypeCommand> Current => new()
-            {
-                ArchetypeCommand = TArchetypeCommand.Create(Data.CurrentArchetype),
-                Entity = Data.CurrentArchetypeDataSpan.EntitySpan[Data.CurrentIndex],
+                DeferredArchetypeCommand = new(Data.CurrentArchetype),
+                InstantArchetypeCommand = RequireInstantArchetypeCommand ? new(Data.CurrentArchetype) : null,
 <#= currentEntityComponentBundleInitialization #>
             };
 
@@ -132,15 +121,9 @@ public partial struct Writable<#= writableGenericParameters #>
             public Entity Entity;
 <#= writableFields #>
 <#= readOnlyFields #>
-        }
 
-        public ref struct EntityComponentBundle<TArchetypeCommand>
-            where TArchetypeCommand : struct, IArchetypeCommand<TArchetypeCommand>
-        {
-            public TArchetypeCommand ArchetypeCommand;
-            public Entity Entity;
-<#= writableFields #>
-<#= readOnlyFields #>
+            public DeferredArchetypeCommand DeferredArchetypeCommand;
+            public InstantArchetypeCommand? InstantArchetypeCommand;
         }
     }
 <#

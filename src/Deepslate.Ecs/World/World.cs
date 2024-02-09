@@ -47,7 +47,7 @@ public sealed class World : IDisposable
         var id = archetype.Id;
         if (id >= _archetypes.Length || _archetypes[id] != archetype)
         {
-            throw new ArgumentOutOfRangeException(nameof(archetype), "Unknown archetype");
+            throw new ArgumentOutOfRangeException(nameof(archetype), "The archetype does not belong to this world.");
         }
         return new InstantArchetypeCommand(archetype);
     }

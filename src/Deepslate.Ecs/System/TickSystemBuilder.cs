@@ -69,7 +69,7 @@ public sealed class TickSystemBuilder
             FillComponentUsageCode(readableComponentUsageCode, query.RequiredWritableComponentTypes);
             FillComponentUsageCode(readableComponentUsageCode, query.RequiredReadOnlyComponentTypes);
 
-            if (query.InstantArchetypeCommandCreatable)
+            if (query.RequireInstantArchetypeCommand)
             {
                 FillComponentUsageCode(writableComponentUsageCode, query.RequiredReadOnlyComponentTypes);
             }

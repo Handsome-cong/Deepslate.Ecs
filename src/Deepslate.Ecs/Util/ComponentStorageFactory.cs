@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace Deepslate.Ecs.Util;
 
@@ -7,6 +8,7 @@ internal static class ComponentStorageFactory
     internal static readonly Dictionary<Type, Func<IComponentDataPoolFactory, IComponentDataStorage>>
         ComponentStorageFactories = new();
 
+    [MethodImpl(MethodImplOptions.Synchronized)]
     internal static void RegisterManagedComponentStorageFactory<TComponent>()
         where TComponent : IComponentData
     {
@@ -14,6 +16,7 @@ internal static class ComponentStorageFactory
             poolFactory => new ManagedComponentStorage<TComponent>(poolFactory));
     }
 
+    [MethodImpl(MethodImplOptions.Synchronized)]
     internal static void RegisterUnmanagedComponentStorageFactory<TComponent>()
         where TComponent : unmanaged, IComponentData
     {

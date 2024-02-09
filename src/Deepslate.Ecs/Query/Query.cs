@@ -17,7 +17,7 @@ public sealed class Query
     public IEnumerable<Type> RequiredWritableComponentTypes => _requiredWritableComponentTypes;
     public IEnumerable<Type> RequiredReadOnlyComponentTypes => _requiredReadOnlyComponentTypes;
     public ArchetypeCommandType ArchetypeCommandType { get; private set; }
-    public bool InstantArchetypeCommandCreatable { get; }
+    public bool RequireInstantArchetypeCommand { get; }
 
     public int Count => _matchedArchetypes.Sum(archetype => archetype.Count);
 
@@ -26,12 +26,12 @@ public sealed class Query
         IEnumerable<Archetype> matchedArchetypes,
         IEnumerable<Type> requiredWritableComponentTypes,
         IEnumerable<Type> requiredReadOnlyComponentTypes,
-        bool instantArchetypeCommandCreatable)
+        bool requireInstantArchetypeCommand)
     {
         _matchedArchetypes = matchedArchetypes.ToArray();
         _requiredWritableComponentTypes = requiredWritableComponentTypes.ToArray();
         _requiredReadOnlyComponentTypes = requiredReadOnlyComponentTypes.ToArray();
-        InstantArchetypeCommandCreatable = instantArchetypeCommandCreatable;
+        RequireInstantArchetypeCommand = requireInstantArchetypeCommand;
 
         _writableComponentStorages = CollectStorages(_requiredWritableComponentTypes);
         _readOnlyComponentStorages = CollectStorages(_requiredReadOnlyComponentTypes);
