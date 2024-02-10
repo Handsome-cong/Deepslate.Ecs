@@ -1,6 +1,6 @@
-﻿using Deepslate.Ecs.Test.TestTickSystems;
+﻿using Deepslate.Ecs.Extensions;
+using Deepslate.Ecs.Test.TestTickSystems;
 using Xunit.Abstractions;
-using Xunit.Sdk;
 
 namespace Deepslate.Ecs.Test;
 
@@ -31,13 +31,11 @@ public sealed class WorldCreationTests(ITestOutputHelper outputHelper)
     public void WorldWithSystems()
     {
         var builder = new WorldBuilder();
-        builder.WithArchetype()
-            .WithComponent<Position>()
-            .Build(out var positionArchetype);
+        builder.WithArchetypeAndBuild<Position>(out var positionArchetype);
         var stageBuilder = builder.AddStage();
         var systemBuilder = stageBuilder.AddTickSystem();
-        systemBuilder.Build(new MovementSystem(systemBuilder), out _);
-        stageBuilder.Build(out _);
+        systemBuilder.Build(new MovementSystem(systemBuilder));
+        stageBuilder.Build();
         
         using var world = builder.Build();
         var command = world.CreateInstantArchetypeCommand(positionArchetype);

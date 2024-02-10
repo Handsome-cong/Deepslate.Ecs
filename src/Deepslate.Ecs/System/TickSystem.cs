@@ -1,6 +1,6 @@
 ﻿namespace Deepslate.Ecs;
 
-public sealed partial class TickSystem
+public sealed class TickSystem
 {
     private readonly Query[] _queries;
 

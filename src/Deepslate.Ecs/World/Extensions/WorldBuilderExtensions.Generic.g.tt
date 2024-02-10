@@ -1,0 +1,52 @@
+﻿<#@ template language="C#" #>
+<#@ import namespace="System.Linq" #>
+namespace Deepslate.Ecs.Extensions;
+
+public static partial class WorldBuilderExtensions
+{
+<#
+    const int maxArchetypeCount = 8;
+
+    foreach (var genericParameterCount in Enumerable.Range(1, maxArchetypeCount))
+    {
+        var genericParameters = string.Join(", ", Enumerable.Range(1, genericParameterCount)
+            .Select(i => $"TComponent{i}"));
+        genericParameters = $"<{genericParameters}>";
+        var wheres = string.Concat(
+            Enumerable.Range(1, genericParameterCount)
+                .Select(i => $"\n        where TComponent{i} : IComponentData"));
+        var withComponents = string.Concat(
+            Enumerable.Range(1, genericParameterCount)
+                .Select(i => $"\n            .WithComponent<TComponent{i}>()"));
+#>
+    public static WorldBuilder WithArchetypeAndBuild<#= genericParameters #>(
+        this WorldBuilder builder, 
+        out Archetype configuredArchetype,
+        out bool newArchetypeRegistered)<#= wheres #>
+    {
+        builder.WithArchetype()<#= withComponents #>
+            .Build(out configuredArchetype, out newArchetypeRegistered);
+        return builder;
+    }
+
+    public static WorldBuilder WithArchetypeAndBuild<#= genericParameters #>(
+        this WorldBuilder builder, 
+        out Archetype configuredArchetype)<#= wheres #>
+    {
+        builder.WithArchetype()<#= withComponents #>
+            .Build(out configuredArchetype);
+        return builder;
+    }
+
+    public static WorldBuilder WithArchetypeAndBuild<#= genericParameters #>(
+        this WorldBuilder builder)<#= wheres #>
+    {
+        builder.WithArchetype()<#= withComponents #>
+            .Build();
+        return builder;
+    }
+
+<#
+    }
+#>
+}

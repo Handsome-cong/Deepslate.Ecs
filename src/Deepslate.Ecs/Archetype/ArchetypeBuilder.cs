@@ -49,6 +49,4 @@ public sealed class ArchetypeBuilder
         Result = configuredArchetype;
         return _worldBuilder;
     }
-
-    public WorldBuilder Build(out Archetype configuredArchetype) => Build(out configuredArchetype, out _);
 }

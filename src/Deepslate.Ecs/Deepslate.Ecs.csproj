@@ -24,6 +24,10 @@
         <Generator>TextTemplatingFileGenerator</Generator>
         <LastGenOutput>EntityComponentEnumeratorData.Generic.g.cs</LastGenOutput>
       </None>
+      <None Update="World\Extensions\WorldBuilderExtensions.Generic.g.tt">
+        <Generator>TextTemplatingFileGenerator</Generator>
+        <LastGenOutput>WorldBuilderExtensions.Generic.g.cs</LastGenOutput>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
@@ -57,6 +61,11 @@
         <DependentUpon>EntityComponentEnumeratorData.Generic.g.tt</DependentUpon>
         <AutoGen>True</AutoGen>
         <DesignTime>True</DesignTime>
+      </Compile>
+      <Compile Update="World\Extensions\WorldBuilderExtensions.Generic.g.cs">
+        <AutoGen>True</AutoGen>
+        <DesignTime>True</DesignTime>
+        <DependentUpon>WorldBuilderExtensions.Generic.g.tt</DependentUpon>
       </Compile>
     </ItemGroup>
 

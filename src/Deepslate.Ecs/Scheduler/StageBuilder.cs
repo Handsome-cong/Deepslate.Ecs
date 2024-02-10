@@ -31,6 +31,4 @@ public sealed class StageBuilder
         WorldBuilder.RegisterStage(index, configuredStage);
         return WorldBuilder;
     }
-    
-    public WorldBuilder Build(out Stage configuredStage) => Build(WorldBuilder.Stages.Count, out configuredStage);
 }

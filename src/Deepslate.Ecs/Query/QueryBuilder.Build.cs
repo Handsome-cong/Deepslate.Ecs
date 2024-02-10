@@ -8,15 +8,15 @@ public partial class QueryBuilder
     /// Call this to complete the query configuration and register it to the system.
     /// As long as this method is called, the operations on this builder will not affect the query anymore.
     /// </summary>
-    /// <param name="registeredQuery">
+    /// <param name="configuredQuery">
     /// The query that has been configured and registered.
     /// </param>
     /// <seealso cref="Result"/>
-    public TickSystemBuilder Build(out Query registeredQuery)
+    public TickSystemBuilder Build(out Query configuredQuery)
     {
         if (Result is not null)
         {
-            registeredQuery = Result;
+            configuredQuery = Result;
         }
 
         var query = new Query(
@@ -26,7 +26,7 @@ public partial class QueryBuilder
             _requireInstantArchetypeCommand);
 
         Result = query;
-        registeredQuery = query;
+        configuredQuery = query;
         TickSystemBuilder.RegisterQuery(query);
         return TickSystemBuilder;
     }
