@@ -45,11 +45,13 @@ internal struct UsageCode
 
 internal readonly ref struct UsageCodeBundle(
     ReadOnlySpan<UsageCode> data,
-    int archetypeCodeCountPerQuery,
-    int componentTypeCodeCountPerQuery)
+    int allArchetypeCount,
+    int allComponentTypeCount)
 {
     private readonly ReadOnlySpan<UsageCode> _data = data;
-    private int UsageCountPerQuery => archetypeCodeCountPerQuery + componentTypeCodeCountPerQuery * 2;
+    private readonly int _archetypeCodeCountPerQuery = (allArchetypeCount - 1) / 8 + 1;
+    private readonly int _componentTypeCodeCountPerQuery = (allComponentTypeCount - 1) / 8 + 1;
+    private int UsageCountPerQuery => _archetypeCodeCountPerQuery + _componentTypeCodeCountPerQuery * 2;
     private int QueryCount => _data.Length / UsageCountPerQuery;
 
     public bool ConflictWith(UsageCodeBundle other)
@@ -73,17 +75,17 @@ internal readonly ref struct UsageCodeBundle(
 
     private bool QueryConflict(ReadOnlySpan<UsageCode> left, ReadOnlySpan<UsageCode> right)
     {
-        var leftArchetypeCodeSpan = left[..archetypeCodeCountPerQuery];
-        var rightArchetypeCodeSpan = right[..archetypeCodeCountPerQuery];
+        var leftArchetypeCodeSpan = left[.._archetypeCodeCountPerQuery];
+        var rightArchetypeCodeSpan = right[.._archetypeCodeCountPerQuery];
         if (!SpanConflict(leftArchetypeCodeSpan, rightArchetypeCodeSpan))
         {
             return false;
         }
 
-        var writableRange = archetypeCodeCountPerQuery..
-            (archetypeCodeCountPerQuery + componentTypeCodeCountPerQuery);
-        var readableRange = (archetypeCodeCountPerQuery + componentTypeCodeCountPerQuery)..
-            (archetypeCodeCountPerQuery + componentTypeCodeCountPerQuery * 2);
+        var writableRange = _archetypeCodeCountPerQuery..
+            (_archetypeCodeCountPerQuery + _componentTypeCodeCountPerQuery);
+        var readableRange = (_archetypeCodeCountPerQuery + _componentTypeCodeCountPerQuery)..
+            (_archetypeCodeCountPerQuery + _componentTypeCodeCountPerQuery * 2);
         
         var leftWritableSpan = left[writableRange];
         var rightWritableSpan = right[writableRange];

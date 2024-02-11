@@ -2,10 +2,18 @@
 
 namespace Deepslate.Ecs.Test.TestTickSystems;
 
-public sealed class HeavyJobSystem : ITickSystemExecutor, ITimeRecorded
+public sealed class HeavyJobReadOnlySystem<TComponent> : ITickSystemExecutor, ITimeRecorded
+    where TComponent : IComponentData
 {
-    public const int ExecutionElapsedTime = 200;
     public long ElapsedTime { get; private set; }
+
+    public HeavyJobReadOnlySystem(TickSystemBuilder builder)
+    {
+        builder.AddQuery()
+            .AsGeneric()
+            .RequireReadOnly<TComponent>()
+            .Build(out _);
+    }
 
     public void Execute()
     {
