@@ -22,6 +22,10 @@ jobs:
         dotnet-version: 8.0.x
     - name: Restore dependencies
       run: dotnet restore
+    - name: Install dotnet-t4 global tool
+      run: dotnet tool install --global dotnet-t4
+    - name: Execute T4 templates
+      run: dotnet t4 run
     - name: Build
       run: dotnet build --no-restore
     - name: Test
