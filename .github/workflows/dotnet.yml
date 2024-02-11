@@ -22,8 +22,10 @@ jobs:
         dotnet-version: 8.0.x
     - name: Restore dependencies
       run: dotnet restore
+    - name: Create local tool manifest
+      run: dotnet new tool-manifest
     - name: Install dotnet-t4 global tool
-      run: dotnet tool install --global dotnet-t4
+      run: dotnet tool install --local dotnet-t4
     - name: Execute T4 templates
       shell: pwsh
       run: Get-ChildItem -Path "." -Filter "*.tt" -File -Recurse | ForEach-Object { dotnet t4 $_.FullName }
