@@ -1,4 +1,5 @@
 ﻿<#@ template language="C#" #>
+<#@ output extension="cs"#>
 <#@ import namespace="System.Linq" #>
 <#@ include file="../../Constants.ttinclude"#>
 using System.Runtime.CompilerServices;
