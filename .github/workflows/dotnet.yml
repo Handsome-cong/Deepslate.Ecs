@@ -25,7 +25,7 @@ jobs:
     - name: Install dotnet-t4 global tool
       run: dotnet tool install --global dotnet-t4
     - name: Execute T4 templates
-      run: find . -type f -name "*.tt" -exec t4 {}
+      run: find . -type f -name "*.tt" -exec t4 {} \;
     - name: Build
       run: dotnet build --no-restore
     - name: Test
