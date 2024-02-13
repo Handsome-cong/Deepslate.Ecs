@@ -10,11 +10,11 @@ namespace Deepslate.Ecs.GenericWrapper;
     foreach (var genericParameterCount in Enumerable.Range(0, MaxGenericParameters * 2 + 1))
     {
         var genericParameters = string.Join(", ",
-            Enumerable.Range(1, genericParameterCount).Select(i => $"TComponent{i}"));
+            Enumerable.Range(1, genericParameterCount).Select(i => $"T{i}"));
         genericParameters = genericParameterCount > 0 ? $"<{genericParameters}>" : "";
 
         var genericParametersWhere = string.Concat(Enumerable.Range(1, genericParameterCount)
-            .Select(i => $"    where TComponent{i} : IComponentData\n"));
+            .Select(i => $"    where T{i} : IComponentData\n"));
 #>
 internal ref struct EntityComponentEnumeratorData<#= genericParameters #>
 <#= genericParametersWhere #>{

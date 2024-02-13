@@ -4,15 +4,16 @@ It is designed to be fast, flexible and easy to use.
 **warning:** This library is still in development and is far from being ready for production.
 
 ## Roadmap
-- [X] Basic ECS Concepts
-  - [x] `Entity` struct with just 64 bits representing your entities
-  - [x] `IComponentData` interface for tagging components
-  - [x] `ITickSystem` interface for tagging systems
-- [ ] `Query` for iterating over entities with specific components
+- [x] `Entity` struct with just 64 bits representing your entities
+- [x] `IComponentData` interface for tagging components
+- [ ] System Support
+  - [x] `ITickSystem` interface for tagging systems that execute per tick
+  - [ ] Source generator for easy `TickSystem` creation
+- [X] `Query` for iterating over entities with specific components
   - [x] Generic `QueryBuilder` for strongly typed query configuration
   - [x] Generic `Query` for explicit query requirements 
   - [x] Generic enumerator for generic query results
-  - [ ] Source generator for generating query configuration code
+  - [X] Source generator for generating query configuration code
 - [x] `Archetype` for storing entities and components
   - [x] Managed and unmanaged component storage
   - [x] `ArchetypeBuilder` for strongly typed archetype configuration

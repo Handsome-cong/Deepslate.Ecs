@@ -1,0 +1,28 @@
+﻿<#@ template language="C#" #>
+<#@ include file="../Constants.ttinclude"#>
+<#@ output extension="cs"#>
+<#@ import namespace="System.Linq" #>
+namespace Deepslate.Ecs.SourceGenerator;
+
+<#
+    foreach (var genericParameterCount in Enumerable.Range(1, MaxGenericParameters))
+    {
+        var genericParameters = string.Join(", ", Enumerable.Range(1, genericParameterCount).Select(i => $"T{i}"));
+        genericParameters = $"<{genericParameters}>";
+        var wheres = string.Concat(Enumerable.Range(1, genericParameterCount).Select(i => $"\n    where T{i} : IComponentData"));
+#>
+[AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
+public sealed class RequireReadOnlyAttribute<#= genericParameters #> : QueryAttribute<#= wheres #>;
+
+[AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
+public sealed class RequireWritableAttribute<#= genericParameters #> : QueryAttribute<#= wheres #>;
+
+[AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
+public sealed class WithAttribute<#= genericParameters #> : QueryAttribute<#= wheres #>;
+
+[AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
+public sealed class WithoutAttribute<#= genericParameters #> : QueryAttribute<#= wheres #>;
+
+<#
+    }
+#>

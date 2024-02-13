@@ -8,17 +8,17 @@ namespace Deepslate.Ecs.GenericWrapper;
     foreach (var genericParameterCount in Enumerable.Range(0, MaxGenericParameters * 2 + 1))
     {
         var genericParameters = string.Join(", ",
-            Enumerable.Range(1, genericParameterCount).Select(i => $"TComponent{i}"));
+            Enumerable.Range(1, genericParameterCount).Select(i => $"T{i}"));
         genericParameters = genericParameterCount > 0 ? $"<{genericParameters}>" : "";
 
         var genericParametersWhere = string.Concat(Enumerable.Range(1, genericParameterCount)
-            .Select(i => $"    where TComponent{i} : IComponentData\n"));
+            .Select(i => $"    where T{i} : IComponentData\n"));
 
         var spans = string.Concat(Enumerable.Range(1, genericParameterCount)
-            .Select(i => $"    public readonly Span<TComponent{i}> Component{i}Span = Span<TComponent{i}>.Empty;\n"));
+            .Select(i => $"    public readonly Span<T{i}> Component{i}Span = Span<T{i}>.Empty;\n"));
         
         var spansInit = string.Join("\n", Enumerable.Range(1, genericParameterCount)
-            .Select(i => $"        Component{i}Span = archetype.GetComponents<TComponent{i}>(range);"));
+            .Select(i => $"        Component{i}Span = archetype.GetComponents<T{i}>(range);"));
 #>
 internal readonly ref struct ArchetypeDataSpan<#=genericParameters#>
 <#=genericParametersWhere#>{

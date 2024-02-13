@@ -11,7 +11,7 @@ public partial class QueryBuilder
     private List<Type> ExcludedComponentTypes { get; } = [];
     private ArchetypeCommandType ArchetypeCommandType { get; set; } = ArchetypeCommandType.None;
 
-    private Func<Archetype, bool>? _filter; 
+    private Predicate<Archetype>? _filter; 
     private bool _requireInstantArchetypeCommand = false;
 
     public Query? Result { get; private set; }
@@ -50,7 +50,7 @@ public partial class QueryBuilder
         return this;
     }
 
-    public QueryBuilder WithFilter(Func<Archetype, bool> predicate)
+    public QueryBuilder WithFilter(Predicate<Archetype> predicate)
     {
         _filter = predicate;
         return this;

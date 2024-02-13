@@ -1,6 +1,6 @@
 ﻿namespace Deepslate.Ecs;
 
-internal interface IComponentDataStorage : IDisposable
+public interface IComponentDataStorage : IDisposable
 {
     /// <summary>
     /// The size of expanded space when the space isn't enough.
@@ -20,7 +20,7 @@ internal interface IComponentDataStorage : IDisposable
     void RemoveMany(int[] sortedIndices);
 }
 
-internal interface IComponentDataStorage<TComponent> : IComponentDataStorage
+public interface IComponentDataStorage<TComponent> : IComponentDataStorage
     where TComponent : IComponentData
 {
     Type IComponentDataStorage.ComponentType => typeof(TComponent);
