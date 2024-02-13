@@ -7,174 +7,89 @@ using Deepslate.Ecs.SourceGenerators;
 using Deepslate.Ecs.Test.TestTickSystems;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Xunit.Abstractions;
 
 namespace Deepslate.Ecs.Test;
 
 public sealed class QueryInitializerGeneratorTests(ITestOutputHelper outputHelper)
 {
-    private const string NameOfSystemWithSingleQueryProperty = "SystemWithSingleQueryProperty";
+    private const string NameOfMultiQuerySystem = "MultiQuerySystem";
 
-    private const string TextOfSystemWithSingleQueryProperty = """
-                                                               using System.Diagnostics.CodeAnalysis;
-                                                               using Deepslate.Ecs.SourceGenerators;
+    private const string TextOfMultiQuerySystem = """
+                                                  using Deepslate.Ecs.SourceGenerator;
 
-                                                               namespace Deepslate.Ecs.Test.TestTickSystems;
+                                                  namespace Deepslate.Ecs.Test.TestTickSystems;
 
-                                                               public sealed partial class SystemWithSingleQueryProperty : ITickSystemExecutor
-                                                               {
-                                                                   [field: RequireReadOnly<Position>]
-                                                                   [field: RequireReadOnly<Position>]
-                                                                   [field: WithFilter(nameof(Predicate))]
-                                                                   public Query Query { get; private set; }
-                                                               
-                                                                   public SystemWithSingleQueryProperty(TickSystemBuilder builder)
-                                                                   {
-                                                                       InitializeQuery(builder);
-                                                                   
-                                                                   }
-                                                               
-                                                                   public void Execute()
-                                                                   {
-                                                                       throw new NotImplementedException();
-                                                                   }
-                                                               
-                                                                   static bool Predicate(Archetype archetype) => false;
-
-                                                               }
-                                                               """;
-
-    private const string ResultOfSystemWithSingleQueryProperty = """
-                                                                 using System.Diagnostics.CodeAnalysis;
-
-                                                                 namespace Deepslate.Ecs.Test.TestTickSystems;
-                                                                 partial class SystemWithSingleQueryProperty
-                                                                 {
-                                                                     [MemberNotNull(nameof(Query))]
-                                                                     private void InitializeQuery(TickSystemBuilder builder)
-                                                                     {
-                                                                        Query configuredQuery;
-                                                                         builder.AddQuery()
-                                                                             .RequireReadOnly<Position>()
-                                                                             .WithFilter(Predicate)
-                                                                             .Build(out configuredQuery);
-                                                                         Query = configuredQuery;
-                                                                     }
-                                                                 }
-                                                                 """;
+                                                  public sealed partial class MultiQuerySystem : ITickSystemExecutor
+                                                  {
+                                                      [RequireWritable<Velocity>] [RequireReadOnly<Position>]
+                                                      private Query _query1;
+                                                  
+                                                      [RequireInstantCommand]
+                                                      [RequireWritable<Name>]
+                                                      [AsGenericQuery(useProperty: true, memberName: "Query2", modifier: GeneratedGenericQueryAccessModifier.Public)]
+                                                      private Query _query2;
+                                                  
+                                                      public MultiQuerySystem(TickSystemBuilder builder)
+                                                      {
+                                                          InitializeQuery(builder);
+                                                      }
+                                                  
+                                                      public void Execute()
+                                                      {
+                                                          throw new NotImplementedException();
+                                                      }
+                                                  }
+                                                  """;
 
     [Fact]
-    public void SingleQueryProperty()
+    public void MultiQuerySystemFromText()
     {
-        var generator = new QueryInitializerGenerator();
-        var driver = CSharpGeneratorDriver.Create(generator);
-        var compilation = CSharpCompilation.Create(
-            nameof(QueryInitializerGenerator),
-            new[] { CSharpSyntaxTree.ParseText(TextOfSystemWithSingleQueryProperty) },
-            new[]
-            {
+        var syntaxTree = CSharpSyntaxTree.ParseText(TextOfMultiQuerySystem);
+        var compilation = CSharpCompilation.Create("Deepslate.Ecs.Test.TestTickSystems.MultiQuerySystem")
+            .AddReferences(
                 MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Entity).Assembly.Location)
-            });
-
+                MetadataReference.CreateFromFile(typeof(Query).Assembly.Location))
+            .AddSyntaxTrees(syntaxTree);
+        var driver = CSharpGeneratorDriver.Create(new QueryInitializerGenerator());
         var runResult = driver.RunGenerators(compilation).GetRunResult();
 
-        var generatedFileSyntax =
-            runResult.GeneratedTrees.Single(tree =>
-                tree.FilePath.EndsWith($"{NameOfSystemWithSingleQueryProperty}.g.cs"));
-
-        var result = UnifyString(generatedFileSyntax.GetText().ToString());
-        outputHelper.WriteLine(result);
-        Assert.Equal(UnifyString(ResultOfSystemWithSingleQueryProperty), result);
-    }
-
-
-    private const string NameOfSystemWithDualQueryField = "SystemWithDualQueryField";
-
-    private const string TextOfSystemWithDualQueryField = """
-                                                          using System.Diagnostics.CodeAnalysis;
-                                                          using Deepslate.Ecs.SourceGenerators;
-
-                                                          namespace Deepslate.Ecs.Test.TestTickSystems;
-
-                                                          public sealed partial class SystemWithDualQueryField : ITickSystemExecutor
-                                                          {
-                                                              [RequireReadOnly<Position>]
-                                                              [RequireWritable<Position>]
-                                                              [WithFilter(nameof(Predicate))]
-                                                              private Query _query;
-                                                              
-                                                              [RequireReadOnly<Velocity>]
-                                                              [RequireWritable<Position>]
-                                                              private Query _anotherQuery;
-                                                          
-                                                              public SystemWithDualQueryField(TickSystemBuilder builder)
-                                                              {
-                                                                  InitializeQuery(builder);
-                                                              
-                                                              }
-                                                          
-                                                              public void Execute()
-                                                              {
-                                                                  throw new NotImplementedException();
-                                                              }
-                                                          
-                                                              static bool Predicate(Archetype archetype) => false;
-
-                                                          }
-                                                          """;
-
-    private const string ResultOfSystemWithDualQueryField = """
-                                                            using System.Diagnostics.CodeAnalysis;
-
-                                                            namespace Deepslate.Ecs.Test.TestTickSystems;
-                                                            partial class SystemWithDualQueryField
-                                                            {
-                                                                [MemberNotNull(nameof(_query))]
-                                                                [MemberNotNull(nameof(_anotherQuery))]
-                                                                private void InitializeQuery(TickSystemBuilder builder)
-                                                                {
-                                                                   Query configuredQuery;
-                                                                    builder.AddQuery()
-                                                                        .RequireWritable<Position>()
-                                                                        .WithFilter(Predicate)
-                                                                        .Build(out configuredQuery);
-                                                                    _query = configuredQuery;
-                                                                    builder.AddQuery()
-                                                                        .RequireWritable<Position>()
-                                                                        .RequireReadOnly<Velocity>()
-                                                                        .Build(out configuredQuery);
-                                                                    _anotherQuery = configuredQuery;
-                                                                }
-                                                            }
-                                                            """;
-
-    [Fact]
-    public void DualQueryField()
-    {
-        var generator = new QueryInitializerGenerator();
-        var driver = CSharpGeneratorDriver.Create(generator);
-        var compilation = CSharpCompilation.Create(
-            nameof(QueryInitializerGenerator),
-            new[] { CSharpSyntaxTree.ParseText(TextOfSystemWithDualQueryField) },
-            new[]
+        var result = runResult.GeneratedTrees.Single(t => t.FilePath.EndsWith($"{NameOfMultiQuerySystem}.g.cs"));
+        var generatedText = result.GetText().ToString();
+        outputHelper.WriteLine(generatedText);
+        var root = result.GetRoot() as CompilationUnitSyntax;
+        var propertyDeclarationFound = root?.Members.Any(
+            namespaceSyntax =>
             {
-                MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Entity).Assembly.Location)
-            });
+                if (namespaceSyntax is FileScopedNamespaceDeclarationSyntax fileScopedNamespaceSyntax)
+                {
+                    return fileScopedNamespaceSyntax.Members.Any(classSyntax =>
+                    {
+                        if (classSyntax is ClassDeclarationSyntax classDeclarationSyntax)
+                        {
+                            return classDeclarationSyntax.Members.Any(memberSyntax =>
+                            {
+                                if (memberSyntax is not PropertyDeclarationSyntax propertyDeclarationSyntax)
+                                {
+                                    return false;
+                                }
 
-        var runResult = driver.RunGenerators(compilation).GetRunResult();
+                                Assert.Equal("Query2", propertyDeclarationSyntax.Identifier.Text);
+                                Assert.Equal("public", propertyDeclarationSyntax.Modifiers.First().Text);
+                                return true;
+                            });
+                        }
 
-        var generatedFileSyntax =
-            runResult.GeneratedTrees.Single(tree => tree.FilePath.EndsWith($"{NameOfSystemWithDualQueryField}.g.cs"));
+                        return false;
+                    });
+                }
 
-        var result = UnifyString(generatedFileSyntax.GetText().ToString());
-        outputHelper.WriteLine(result);
-        Assert.Equal(UnifyString(ResultOfSystemWithDualQueryField), result);
+                return false;
+            }) ?? false;
+
+        Assert.True(propertyDeclarationFound);
     }
-
-    private static string UnifyString(string text) =>
-        text.Replace("\r\n", "\n").Replace("\r", "\n").Replace("\n", Environment.NewLine);
 
     [Fact]
     public void GeneratedMultiQuerySystem()
@@ -214,6 +129,7 @@ public sealed class QueryInitializerGeneratorTests(ITestOutputHelper outputHelpe
                         {
                             continue;
                         }
+
                         predicate =
                             Delegate.CreateDelegate(typeof(Predicate<Archetype>), candidateMethod, false) as
                                 Predicate<Archetype>;
@@ -222,7 +138,7 @@ public sealed class QueryInitializerGeneratorTests(ITestOutputHelper outputHelpe
                             break;
                         }
                     }
-                    
+
                     Assert.NotNull(predicate);
                     queryBuilder.WithFilter(predicate);
                     continue;
@@ -271,7 +187,7 @@ public sealed class QueryInitializerGeneratorTests(ITestOutputHelper outputHelpe
         tickSystemBuilderByReflection.Build(new EmptySystem(), out var tickSystemByReflection);
         stageBuilder.Build();
         worldBuilder.Build();
-        
+
         var span = MemoryMarshal.Cast<UsageCode, ulong>(tickSystem.UsageCodes);
         var spanByReflection = MemoryMarshal.Cast<UsageCode, ulong>(tickSystemByReflection.UsageCodes);
         var sb = new StringBuilder();
@@ -279,6 +195,7 @@ public sealed class QueryInitializerGeneratorTests(ITestOutputHelper outputHelpe
         {
             sb.Append(code);
         }
+
         var codeString = sb.ToString();
         outputHelper.WriteLine(codeString);
         sb.Clear();
@@ -286,6 +203,7 @@ public sealed class QueryInitializerGeneratorTests(ITestOutputHelper outputHelpe
         {
             sb.Append(code);
         }
+
         var codeStringByReflection = sb.ToString();
         outputHelper.WriteLine(codeStringByReflection);
         Assert.Equal(codeStringByReflection, codeString);
