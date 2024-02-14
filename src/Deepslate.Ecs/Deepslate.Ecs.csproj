@@ -24,9 +24,9 @@
         <Generator>TextTemplatingFileGenerator</Generator>
         <LastGenOutput>EntityComponentEnumeratorData.Generic.g.cs</LastGenOutput>
       </None>
-      <None Update="World\Extensions\WorldBuilderExtensions.Component.Generic.g.tt">
+      <None Update="World\Extensions\WorldBuilderExtensions.Archetype.Generic.g.tt">
         <Generator>TextTemplatingFileGenerator</Generator>
-        <LastGenOutput>WorldBuilderExtensions.Component.Generic.g.cs</LastGenOutput>
+        <LastGenOutput>WorldBuilderExtensions.Archetype.Generic.g.cs</LastGenOutput>
       </None>
       <None Update="SourceGenerator\QueryAttribute.Generic.g.tt">
         <Generator>TextTemplatingFileGenerator</Generator>
@@ -66,10 +66,10 @@
         <AutoGen>True</AutoGen>
         <DesignTime>True</DesignTime>
       </Compile>
-      <Compile Update="World\Extensions\WorldBuilderExtensions.Component.Generic.g.cs">
+      <Compile Update="World\Extensions\WorldBuilderExtensions.Archetype.Generic.g.cs">
         <AutoGen>True</AutoGen>
         <DesignTime>True</DesignTime>
-        <DependentUpon>WorldBuilderExtensions.Component.Generic.g.tt</DependentUpon>
+        <DependentUpon>WorldBuilderExtensions.Archetype.Generic.g.tt</DependentUpon>
       </Compile>
       <Compile Update="SourceGenerator\QueryAttribute.Generic.g.cs">
         <AutoGen>True</AutoGen>

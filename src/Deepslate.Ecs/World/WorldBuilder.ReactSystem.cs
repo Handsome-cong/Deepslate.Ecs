@@ -1,7 +1,4 @@
-﻿using Deepslate.Ecs.Extensions;
-using Deepslate.Ecs.Util;
-
-namespace Deepslate.Ecs;
+﻿namespace Deepslate.Ecs;
 
 public sealed partial class WorldBuilder
 {
