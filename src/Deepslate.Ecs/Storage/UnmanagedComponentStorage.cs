@@ -73,6 +73,7 @@ internal sealed class UnmanagedComponentStorage<TComponent>(WorldBuilder builder
 
     public void Dispose()
     {
+        ReactBeforeFree?.BeforeFree(AsSpan());
         _pool.Return(_components);
     }
 }
