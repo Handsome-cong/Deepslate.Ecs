@@ -35,6 +35,7 @@ public sealed class TickSystemBuilder
 
         var usageCodes = CalculateUsageCodes();
         configuredTickSystem = new TickSystem(executor, _queries, _dependencies, usageCodes);
+        Result = configuredTickSystem;
         StageBuilder.RegisterTickSystem(configuredTickSystem);
         return StageBuilder;
     }
@@ -71,7 +72,11 @@ public sealed class TickSystemBuilder
 
             if (query.RequireInstantArchetypeCommand)
             {
-                FillComponentUsageCode(writableComponentUsageCode, query.RequiredReadOnlyComponentTypes);
+                var allComponentTypes = query.MatchedArchetypes
+                    .SelectMany(archetype => archetype.ComponentTypes)
+                    .ToHashSet();
+                FillComponentUsageCode(writableComponentUsageCode, allComponentTypes);
+                FillComponentUsageCode(readableComponentUsageCode, allComponentTypes);
             }
         }
 
