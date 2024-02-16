@@ -4,20 +4,15 @@ namespace Deepslate.Ecs;
 
 public sealed partial class Archetype
 {
-    private uint _maxEntityId = 0;
+    private uint _maxEntityId;
     private EntityStorage _entities = new();
     private readonly Queue<Entity> _removedEntities = new();
 
     internal int Count => _entities.Count;
+    internal ReadOnlySpan<Entity> Entities => _entities.AsSpan();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal bool ContainsEntity(Entity entity) => _entities.IndexOf(entity) != EntityStorage.NoIndex;
-
-    internal ReadOnlySpan<Entity> GetEntities(Range range)
-    {
-        var (offset, length) = range.GetOffsetAndLength(Count);
-        return _entities.AsSpan().Slice(offset, length);
-    }
 
     internal bool Destroy(Entity entity)
     {
@@ -35,7 +30,7 @@ public sealed partial class Archetype
         return true;
     }
 
-    private void DestroyMany(Entity[] entities)
+    internal void DestroyMany(Entity[] entities)
     {
         switch (entities)
         {
@@ -87,7 +82,7 @@ public sealed partial class Archetype
         return entity;
     }
 
-    private Entity[] CreateMany(int count)
+    public Entity[] CreateMany(int count)
     {
         switch (count)
         {

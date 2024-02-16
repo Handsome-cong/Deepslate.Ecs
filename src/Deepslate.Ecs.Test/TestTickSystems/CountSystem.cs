@@ -11,7 +11,7 @@ public sealed class CountSystem : ITickSystemExecutor
             .RequireReadOnly<Position>()
             .Build(out _);
     }
-    public void Execute()
+    public void Execute(TickSystemCommand command)
     {
         ExecutionCount++;
     }

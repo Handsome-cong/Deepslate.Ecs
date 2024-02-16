@@ -36,20 +36,9 @@ public sealed class World : IDisposable
 
     public Task TickAsync() => _scheduler.TickAsync();
 
-    public bool ContainsEntity(Entity entity)
+    public GlobalArchetypeCommand CreateGlobalArchetypeCommand()
     {
-        var archetypeId = entity.ArchetypeId;
-        return archetypeId < _archetypes.Length && _archetypes[archetypeId].ContainsEntity(entity);
-    }
-
-    public InstantArchetypeCommand CreateInstantArchetypeCommand(Archetype archetype)
-    {
-        var id = archetype.Id;
-        if (id >= _archetypes.Length || _archetypes[id] != archetype)
-        {
-            throw new ArgumentOutOfRangeException(nameof(archetype), "The archetype does not belong to this world.");
-        }
-        return new InstantArchetypeCommand(archetype);
+        return new GlobalArchetypeCommand(this);
     }
 
     public void Dispose()

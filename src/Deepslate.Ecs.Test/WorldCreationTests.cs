@@ -1,13 +1,10 @@
 ﻿using Deepslate.Ecs.Extensions;
 using Deepslate.Ecs.Test.TestTickSystems;
-using Xunit.Abstractions;
 
 namespace Deepslate.Ecs.Test;
 
-public sealed class WorldCreationTests(ITestOutputHelper outputHelper)
+public sealed class WorldCreationTests
 {
-    private ITestOutputHelper _outputHelper = outputHelper;
-    
     [Fact]
     public void EmptyWorld()
     {
@@ -38,8 +35,8 @@ public sealed class WorldCreationTests(ITestOutputHelper outputHelper)
         stageBuilder.Build();
         
         using var world = builder.Build();
-        var command = world.CreateInstantArchetypeCommand(positionArchetype);
-        var entity = command.Create();
+        var command = world.CreateGlobalArchetypeCommand();
+        var entity = command.Create(positionArchetype);
         ref var position = ref command.GetComponent<Position>(entity);
         position = new Position { X = 0, Y = 0, Z = 0 };
         world.Tick();

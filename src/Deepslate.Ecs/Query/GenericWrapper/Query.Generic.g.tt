@@ -3,6 +3,7 @@
 <#@ import namespace="System.Linq" #>
 <#@ include file="../../Constants.ttinclude"#>
 using System.Runtime.CompilerServices;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Deepslate.Ecs.GenericWrapper;
 
@@ -33,51 +34,36 @@ public partial struct Writable<#= writableGenericParameters #>
                     .Select(i => $"        where TReadOnly{i} : IComponentData\n"));
 
             var writableStorages = string.Join("\n", Enumerable.Range(1, writableGenericParameterCount)
-                .Select(i => $"            private readonly IComponentDataStorage<TWritable{i}>[] _writeable{i}Storages = query.GetStorages<TWritable{i}>();"));
+                .Select(i => $"            private readonly IComponentDataStorage<TWritable{i}>[] _writable{i}Storages = query.GetStorages<TWritable{i}>();"));
 
             var readOnlyStorages = string.Join("\n", Enumerable.Range(1, readOnlyGenericParameterCount)
                 .Select(i => $"            private readonly IComponentDataStorage<TReadOnly{i}>[] _readOnly{i}Storages = query.GetStorages<TReadOnly{i}>();"));
 
-            var dataWritableGenericArguments = string.Join(", ", Enumerable.Range(1, writableGenericParameterCount)
-                .Select(i => $"TWritable{i}"));
+            var writableSpanFields = string.Join("\n", Enumerable.Range(1, writableGenericParameterCount)
+                .Select(i => $"                private Span<TWritable{i}> _writable{i}Span = Span<TWritable{i}>.Empty;"));
 
-            var dataReadOnlyGenericArguments = string.Join(", ", Enumerable.Range(1, readOnlyGenericParameterCount)
-                .Select(i => $"TReadOnly{i}"));
-
-            var dataGenericArguments = dataWritableGenericArguments + dataReadOnlyGenericArguments;
-            if (writableGenericParameterCount > 0 && readOnlyGenericParameterCount > 0)
-            {
-                dataGenericArguments = string.Join(", ",
-                    dataWritableGenericArguments,
-                    dataReadOnlyGenericArguments);
-            }
-            if (writableGenericParameterCount + readOnlyGenericParameterCount > 0)
-            {
-                dataGenericArguments = $"<{dataGenericArguments}>";
-            }
-
-            var currentEntityComponentBundleWritableInitialization = string.Join(",\n",
+            var readOnlySpanFields = string.Join("\n", Enumerable.Range(1, readOnlyGenericParameterCount)
+                .Select(i => $"                private Span<TReadOnly{i}> _readOnly{i}Span = Span<TReadOnly{i}>.Empty;"));
+            
+            var entityComponentBundleWritableInitialization = string.Join("\n",
                 Enumerable.Range(1, writableGenericParameterCount)
-                    .Select(i => $"                WritableComponent{i} = ref Data.CurrentArchetypeDataSpan.Component{i}Span[Data.CurrentIndex]"));
+                    .Select(i => $"                        WritableComponent{i} = ref _writable{i}Span[_currentIndex],"));
 
-            var currentEntityComponentBundleReadOnlyInitialization = string.Join(",\n",
+            var entityComponentBundleReadOnlyInitialization = string.Join("\n",
                 Enumerable.Range(1, readOnlyGenericParameterCount)
-                    .Select(i => $"                ReadOnlyComponent{i} = ref Data.CurrentArchetypeDataSpan.Component{i + writableGenericParameterCount}Span[Data.CurrentIndex]"));
-
-            var currentEntityComponentBundleInitialization = currentEntityComponentBundleWritableInitialization +
-                                                       currentEntityComponentBundleReadOnlyInitialization;
-            if (writableGenericParameterCount > 0 && readOnlyGenericParameterCount > 0)
-            {
-                currentEntityComponentBundleInitialization = string.Join(",\n",
-                    currentEntityComponentBundleWritableInitialization,
-                    currentEntityComponentBundleReadOnlyInitialization);
-            }
+                    .Select(i => $"                        ReadOnlyComponent{i} = ref _readOnly{i}Span[_currentIndex],"));
+            
+            var writableSpanUpdate = string.Join("\n", Enumerable.Range(1, writableGenericParameterCount)
+                .Select(i => $"                        _writable{i}Span = _query._writable{i}Storages[_currentArchetypeIndex].AsSpan();"));
+            
+            var readOnlySpanUpdate = string.Join("\n", Enumerable.Range(1, readOnlyGenericParameterCount)
+                .Select(i => $"                        _readOnly{i}Span = _query._readOnly{i}Storages[_currentArchetypeIndex].AsSpan();"));
 
             var writableFields = string.Join("\n", Enumerable.Range(1, writableGenericParameterCount)
-                .Select(i => $"            public ref TWritable{i} WritableComponent{i};"));
+                .Select(i => $"                    public ref TWritable{i} WritableComponent{i};"));
 
             var readOnlyFields = string.Join("\n", Enumerable.Range(1, readOnlyGenericParameterCount)
-                .Select(i => $"            public ref readonly TReadOnly{i} ReadOnlyComponent{i};"));
+                .Select(i => $"                    public ref readonly TReadOnly{i} ReadOnlyComponent{i};"));
 #>
     public partial struct ReadOnly<#= readOnlyGenericParameters #>
 <#= readOnlyGenericParametersWhere #>    {
@@ -87,44 +73,89 @@ public partial struct Writable<#= writableGenericParameters #>
 
 <#= writableStorages #>
 <#= readOnlyStorages #>
+            
+            public Enumerator GetEnumerator() => new Enumerator(this);
 
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public EntityComponentEnumerator GetEnumerator() => new() 
+            public ref struct Enumerator
             {
-                Data = new(TypelessQuery.MatchedArchetypes),
-                RequireInstantArchetypeCommand = TypelessQuery.RequireInstantArchetypeCommand
-            };
+                private readonly Query _query;
 
-            public static implicit operator Deepslate.Ecs.Query(Query self) => self.TypelessQuery;
-        }
+                private int _currentArchetypeIndex = -1;
+                private int _currentIndex = -1;
 
-        public ref struct EntityComponentEnumerator
-        {
-            internal bool RequireInstantArchetypeCommand;
-            internal EntityComponentEnumeratorData<#= dataGenericArguments #> Data;
+                private int _currentCount = 0;
 
-            public EntityComponentBundle Current => new()
-            {
-                Entity = Data.CurrentArchetypeDataSpan.EntitySpan[Data.CurrentIndex],
-                DeferredArchetypeCommand = new(Data.CurrentArchetype),
-                InstantArchetypeCommand = RequireInstantArchetypeCommand ? new(Data.CurrentArchetype) : null,
-<#= currentEntityComponentBundleInitialization #>
-            };
+                private ReadOnlySpan<Entity> _entities = ReadOnlySpan<Entity>.Empty;
+<#= writableSpanFields #>
+<#= readOnlySpanFields #>
+                
+                private EntityComponentBundle _cachedResult = default;
 
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Reset() => Data.Reset();
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool MoveNext() => Data.MoveNext();
-        }
+                internal Enumerator(Query query)
+                {
+                    _query = query;
+                }
 
-        public ref struct EntityComponentBundle
-        {
-            public Entity Entity;
+                [UnscopedRef]
+                public ref EntityComponentBundle Current => ref _cachedResult;
+
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public bool MoveNext()
+                {
+                    if (++_currentIndex < _currentCount)
+                    {
+                        UpdateResult();
+                        return true;
+                    }
+
+                    _currentIndex = 0;
+
+                    var archetypes = _query.TypelessQuery.MatchedArchetypes;
+                    var archetypeCount = archetypes.Count;
+                    while (++_currentArchetypeIndex < archetypeCount && archetypes[_currentArchetypeIndex].Count == 0)
+                    {
+                    }
+
+                    var success = _currentArchetypeIndex < archetypeCount;
+                    if (success)
+                    {
+                        _currentCount = archetypes[_currentArchetypeIndex].Count;
+                        _entities = archetypes[_currentArchetypeIndex].Entities;
+<#= writableSpanUpdate #>
+<#= readOnlySpanUpdate #>
+                        UpdateResult();
+                    }
+
+                    return success;
+                }
+
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public void Reset()
+                {
+                    _currentArchetypeIndex = -1;
+                    _currentIndex = -1;
+                    _cachedResult = default;
+                }
+
+                private void UpdateResult()
+                {
+                    _cachedResult = new EntityComponentBundle
+                    {
+<#= entityComponentBundleWritableInitialization #>
+<#= entityComponentBundleReadOnlyInitialization #>
+                        Entity = _entities[_currentIndex],
+                        Archetype = _query.TypelessQuery.MatchedArchetypes[_currentArchetypeIndex]
+                    };
+                }
+
+                public ref struct EntityComponentBundle
+                {
+                    public Archetype Archetype;
+                    public Entity Entity;
 <#= writableFields #>
 <#= readOnlyFields #>
-
-            public DeferredArchetypeCommand DeferredArchetypeCommand;
-            public InstantArchetypeCommand? InstantArchetypeCommand;
+                }
+            }
         }
     }
 <#

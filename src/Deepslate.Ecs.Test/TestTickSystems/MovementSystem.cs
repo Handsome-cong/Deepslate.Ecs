@@ -15,7 +15,7 @@ public sealed class MovementSystem : ITickSystemExecutor
             .Build(out _positionQuery);
     }
     
-    public void Execute()
+    public void Execute(TickSystemCommand command)
     {
         foreach (var bundle in _positionQuery)
         {

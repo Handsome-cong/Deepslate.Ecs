@@ -39,8 +39,7 @@ public sealed class ArchetypeBuilder
                 _worldBuilder.WithUnmanagedComponentIfPossible(componentType);
             }
 
-            storages[count++] =
-                ComponentStorageFactory.ComponentStorageFactories[componentType](_worldBuilder.ComponentPoolFactory);
+            storages[count++] = _worldBuilder.ComponentStorageFactory.Factories[componentType](_worldBuilder);
         }
 
         var id = _worldBuilder.NextArchetypeId;

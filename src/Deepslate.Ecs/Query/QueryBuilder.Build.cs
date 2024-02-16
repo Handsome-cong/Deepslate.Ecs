@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.Contracts;
-
-namespace Deepslate.Ecs;
+﻿namespace Deepslate.Ecs;
 
 public partial class QueryBuilder
 {
@@ -23,7 +21,8 @@ public partial class QueryBuilder
             GetMatchedArchetypes(),
             RequiredWritableComponentTypes,
             RequiredReadOnlyComponentTypes,
-            _requireInstantArchetypeCommand);
+            _requireInstantArchetypeCommand,
+            TickSystemBuilder.StageBuilder.WorldBuilder.StorageArrayFactory);
 
         Result = query;
         configuredQuery = query;

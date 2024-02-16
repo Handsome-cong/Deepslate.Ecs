@@ -6,7 +6,7 @@ public interface IComponentDataStorage : IDisposable
     /// The size of expanded space when the space isn't enough.
     /// </summary>
     internal const int SizeOfPage = 1024;
-    
+
     // Currently, the components with the same type in the same archetype are stored in a contiguous memory block.
     // That means a huge memory copy and allocation will happen when the space is not enough, if there are thousands of entities.
     // Maybe separate the components into pages will be better.
@@ -25,10 +25,14 @@ public interface IComponentDataStorage<TComponent> : IComponentDataStorage
 {
     Type IComponentDataStorage.ComponentType => typeof(TComponent);
 
+    protected IReactBeforeDestroy<TComponent>? ReactBeforeDestroy => null;
+    protected IReactBeforeMove<TComponent>? ReactBeforeMove => null;
+
     new void Add(int count = 1);
     new void Pop(int count = 1);
 
     Span<TComponent> AsSpan();
+    Memory<TComponent> AsMemory();
 
     ref TComponent this[int index] => ref AsSpan()[index];
 
@@ -43,10 +47,14 @@ public interface IComponentDataStorage<TComponent> : IComponentDataStorage
             throw new ArgumentOutOfRangeException(nameof(index), "Index out of range.");
         }
 
+        var span = AsSpan();
+        ReactBeforeDestroy?.BeforeDestroy(ref span[index]);
         if (index < count - 1)
         {
-            var span = AsSpan();
-            span[index] = span[count - 1];
+            var from = span.Slice(count - 1, 1);
+            var to = span.Slice(index, 1);
+            ReactBeforeMove?.BeforeMove(from, to);
+            to[0] = from[0];
         }
 
         Pop();
@@ -58,6 +66,7 @@ public interface IComponentDataStorage<TComponent> : IComponentDataStorage
         {
             return;
         }
+
         var count = Count;
         var reservedIndicesStack = new int[count - sortedIndices[0] - sortedIndices.Length];
         var reservedIndicesCount = 0;
@@ -75,12 +84,20 @@ public interface IComponentDataStorage<TComponent> : IComponentDataStorage
         }
 
         var span = AsSpan();
+        foreach (var i in sortedIndices)
+        {
+            ReactBeforeDestroy?.BeforeDestroy(ref span[i]);
+        }
+
         for (var i = 0;
              i < sortedIndices.Length && reservedIndicesCount > 0 &&
              reservedIndicesStack[reservedIndicesCount - 1] > sortedIndices[i];
              i++)
         {
-            span[sortedIndices[i]] = span[reservedIndicesStack[--reservedIndicesCount]];
+            var from = span.Slice(reservedIndicesStack[--reservedIndicesCount], 1);
+            var to = span.Slice(sortedIndices[i], 1);
+            ReactBeforeMove?.BeforeMove(from, to);
+            to[0] = from[0];
         }
 
         Pop(sortedIndices.Length);

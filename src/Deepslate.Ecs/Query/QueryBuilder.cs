@@ -9,7 +9,6 @@ public partial class QueryBuilder
     private List<Type> RequiredReadOnlyComponentTypes { get; } = [];
     private List<Type> IncludedComponentTypes { get; } = [];
     private List<Type> ExcludedComponentTypes { get; } = [];
-    private ArchetypeCommandType ArchetypeCommandType { get; set; } = ArchetypeCommandType.None;
 
     private Predicate<Archetype>? _filter; 
     private bool _requireInstantArchetypeCommand = false;

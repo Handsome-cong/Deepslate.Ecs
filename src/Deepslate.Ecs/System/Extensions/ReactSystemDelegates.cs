@@ -12,7 +12,7 @@ public delegate void ReactAfterCreate<TComponent>(Span<TComponent> component)
 public delegate void ReactBeforeDestroy<TComponent>(ref TComponent component)
     where TComponent : IComponentData;
     
-public delegate void ReactBeforeMove<TComponent>(ref TComponent from, ref TComponent to)
+public delegate void ReactBeforeMove<TComponent>(Span<TComponent> from, Span<TComponent> to)
     where TComponent : IComponentData;
 
 internal sealed record AfterAllocReactSystem<TComponent>(ReactAfterAlloc<TComponent> ReactAfterAlloc)
@@ -47,5 +47,5 @@ internal sealed record BeforeMoveReactSystem<TComponent>(ReactBeforeMove<TCompon
     : IReactBeforeMove<TComponent>
     where TComponent : IComponentData
 {
-    public void BeforeMove(ref TComponent from, ref TComponent to) => ReactBeforeMove(ref from, ref to);
+    public void BeforeMove(Span<TComponent> from, Span<TComponent> to) => ReactBeforeMove(from, to);
 }

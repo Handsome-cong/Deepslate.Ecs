@@ -7,13 +7,16 @@ internal sealed class ParallelScheduler
     private readonly Stage[] _stages;
     private readonly Archetype[] _archetypes;
 
-    private readonly HashSet<DependencyGraphNode> _executingNodes = [];
+    private readonly HashSet<DependencyGraphNode> _runningNodes = [];
     private readonly HashSet<DependencyGraphNode> _waitingNodes = [];
 
     private readonly List<int> _dependencyCompletionCount = [];
     private readonly List<bool> _executedFlags = [];
 
     private readonly SemaphoreSlim _semaphore = new(1, 1);
+
+    private readonly UncheckedCommandBuffer _commandBufferEndOfStage = new();
+    private readonly UncheckedCommandBuffer _commandBufferEndOfTick = new();
 
     internal ParallelScheduler(IEnumerable<Stage> stages, IEnumerable<Archetype> archetypes)
     {
@@ -31,9 +34,10 @@ internal sealed class ParallelScheduler
         foreach (var stage in _stages)
         {
             await ExecuteStageAsync(stage);
-            ExecuteEndOfStageCommands();
+            _commandBufferEndOfStage.Execute();
         }
-        ExecuteEndOfTickCommands();
+
+        _commandBufferEndOfTick.Execute();
     }
 
     private async Task ExecuteStageAsync(Stage stage)
@@ -64,7 +68,7 @@ internal sealed class ParallelScheduler
                 continue;
             }
 
-            if (_executingNodes.Any(executingNode => executingNode.OtherNodesConflictWithThis.Contains(node)))
+            if (_runningNodes.Any(runningNode => runningNode.OtherNodesConflictWithThis.Contains(node)))
             {
                 continue;
             }
@@ -78,12 +82,21 @@ internal sealed class ParallelScheduler
 
     private async Task ExecuteNodeAsync(DependencyGraphNode node)
     {
-        _executingNodes.Add(node);
+        _runningNodes.Add(node);
         _waitingNodes.Remove(node);
-        await Task.Run(() => { node.TickSystem.Executor.Execute(); });
+
+        var tickSystem = node.TickSystem;
+
+        tickSystem.ExecutionTask = new Task(() =>
+        {
+            tickSystem.Executor.Execute(
+                new TickSystemCommand(tickSystem, _commandBufferEndOfStage,_commandBufferEndOfTick));
+        });
+        tickSystem.ExecutionTask.Start();
+        await tickSystem.ExecutionTask;
 
         await _semaphore.WaitAsync();
-        _executingNodes.Remove(node);
+        _runningNodes.Remove(node);
         _executedFlags[node.Id] = true;
         foreach (var otherNode in node.OtherNodesDependOnThis)
         {
@@ -103,22 +116,6 @@ internal sealed class ParallelScheduler
             {
                 _waitingNodes.Add(node);
             }
-        }
-    }
-
-    private void ExecuteEndOfStageCommands()
-    {
-        foreach (var archetype in _archetypes)
-        {
-            archetype.ExecuteEndOfStageCommands();
-        }
-    }
-
-    private void ExecuteEndOfTickCommands()
-    {
-        foreach (var archetype in _archetypes)
-        {
-            archetype.ExecuteEndOfTickCommands();
         }
     }
 }

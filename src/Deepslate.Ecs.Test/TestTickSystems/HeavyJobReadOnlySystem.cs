@@ -15,7 +15,7 @@ public sealed class HeavyJobReadOnlySystem<TComponent> : ITickSystemExecutor, IT
             .Build(out _);
     }
 
-    public void Execute()
+    public void Execute(TickSystemCommand command)
     {
         var sw = new Stopwatch();
         sw.Start();

@@ -12,18 +12,6 @@
         <Generator>TextTemplatingFileGenerator</Generator>
         <LastGenOutput>QueryBuilder.Generic.g.cs</LastGenOutput>
       </None>
-      <None Update="Query\GenericWrapper\Query.Generic.g.tt">
-        <Generator>TextTemplatingFileGenerator</Generator>
-        <LastGenOutput>Query.Generic.g.cs</LastGenOutput>
-      </None>
-      <None Update="Archetype\GenericWrapper\ArchetypeDataSpan.Generic.g.tt">
-        <Generator>TextTemplatingFileGenerator</Generator>
-        <LastGenOutput>ArchetypeDataSpan.Generic.g.cs</LastGenOutput>
-      </None>
-      <None Update="Archetype\GenericWrapper\EntityComponentEnumeratorData.Generic.g.tt">
-        <Generator>TextTemplatingFileGenerator</Generator>
-        <LastGenOutput>EntityComponentEnumeratorData.Generic.g.cs</LastGenOutput>
-      </None>
       <None Update="World\Extensions\WorldBuilderExtensions.Archetype.Generic.g.tt">
         <Generator>TextTemplatingFileGenerator</Generator>
         <LastGenOutput>WorldBuilderExtensions.Archetype.Generic.g.cs</LastGenOutput>
@@ -32,14 +20,15 @@
         <Generator>TextTemplatingFileGenerator</Generator>
         <LastGenOutput>QueryAttribute.Generic.g.cs</LastGenOutput>
       </None>
+      <None Update="Query\GenericWrapper\Query.Generic.g.tt">
+        <Generator>TextTemplatingFileGenerator</Generator>
+        <LastGenOutput>Query.Generic.g.cs</LastGenOutput>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
       <Compile Update="Query\GenericWrapper\QueryBuilder.Generic.g.cs">
         <DependentUpon>QueryBuilder.Generic.g.tt</DependentUpon>
-      </Compile>
-      <Compile Update="Query\GenericWrapper\Query.Generic.g.cs">
-        <DependentUpon>Query.Generic.g.tt</DependentUpon>
       </Compile>
       <Compile Update="Query\GenericWrapper\Query.Generic.g.cs">
         <AutoGen>True</AutoGen>
@@ -56,16 +45,6 @@
         <DesignTime>True</DesignTime>
         <DependentUpon>QueryEnumeratorData.Generic.g.tt</DependentUpon>
       </Compile>
-      <Compile Update="Archetype\GenericWrapper\ArchetypeDataSpan.Generic.g.cs">
-        <AutoGen>True</AutoGen>
-        <DesignTime>True</DesignTime>
-        <DependentUpon>ArchetypeDataSpan.Generic.g.tt</DependentUpon>
-      </Compile>
-      <Compile Update="Archetype\GenericWrapper\EntityComponentEnumeratorData.Generic.g.cs">
-        <DependentUpon>EntityComponentEnumeratorData.Generic.g.tt</DependentUpon>
-        <AutoGen>True</AutoGen>
-        <DesignTime>True</DesignTime>
-      </Compile>
       <Compile Update="World\Extensions\WorldBuilderExtensions.Archetype.Generic.g.cs">
         <AutoGen>True</AutoGen>
         <DesignTime>True</DesignTime>
@@ -76,6 +55,15 @@
         <DesignTime>True</DesignTime>
         <DependentUpon>QueryAttribute.Generic.g.tt</DependentUpon>
       </Compile>
+      <Compile Update="Query\GenericWrapper\Query.Generic.g.cs">
+        <DependentUpon>Query2.Generic.g.tt</DependentUpon>
+        <AutoGen>True</AutoGen>
+        <DesignTime>True</DesignTime>
+      </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Archetype\GenericWrapper\" />
     </ItemGroup>
 
 </Project>

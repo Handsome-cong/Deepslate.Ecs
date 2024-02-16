@@ -10,8 +10,8 @@ public sealed class CommandTests
         var builder = new WorldBuilder();
         builder.WithArchetypeAndBuild<Position>(out var positionArchetype);
         using var world = builder.Build();
-        var command = world.CreateInstantArchetypeCommand(positionArchetype);
-        var entity = command.Create();
+        var command = world.CreateGlobalArchetypeCommand();
+        var entity = command.Create(positionArchetype);
         Assert.True(command.Contains(entity));
     }
     
@@ -21,8 +21,8 @@ public sealed class CommandTests
         var builder = new WorldBuilder();
         builder.WithArchetypeAndBuild<Position>(out var positionArchetype);
         using var world = builder.Build();
-        var command = world.CreateInstantArchetypeCommand(positionArchetype);
-        var entity = command.Create();
+        var command = world.CreateGlobalArchetypeCommand();
+        var entity = command.Create(positionArchetype);
         Assert.True(command.Contains(entity));
         Assert.True(command.Destroy(entity));
         Assert.False(command.Contains(entity));
@@ -34,8 +34,8 @@ public sealed class CommandTests
         var builder = new WorldBuilder();
         builder.WithArchetypeAndBuild<Position>(out var positionArchetype);
         using var world = builder.Build();
-        var command = world.CreateInstantArchetypeCommand(positionArchetype);
-        var entity = command.Create();
+        var command = world.CreateGlobalArchetypeCommand();
+        var entity = command.Create(positionArchetype);
         ref var position = ref command.GetComponent<Position>(entity);
         position = new Position { X = 0, Y = 0, Z = 0 };
         ref var position2 = ref command.GetComponent<Position>(entity);
@@ -48,8 +48,8 @@ public sealed class CommandTests
         var builder = new WorldBuilder();
         builder.WithArchetypeAndBuild<Position>(out var positionArchetype);
         using var world = builder.Build();
-        var command = world.CreateInstantArchetypeCommand(positionArchetype);
-        var entity = command.Create();
+        var command = world.CreateGlobalArchetypeCommand();
+        var entity = command.Create(positionArchetype);
         ref var position = ref command.GetComponent<Position>(entity);
         position = new Position { X = 0, Y = 0, Z = 0 };
         ref var position2 = ref command.GetComponent<Position>(entity);

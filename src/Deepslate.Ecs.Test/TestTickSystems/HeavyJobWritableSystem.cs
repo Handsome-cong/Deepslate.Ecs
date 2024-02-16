@@ -15,7 +15,7 @@ public sealed class HeavyJobWritableSystem<TComponent> : ITickSystemExecutor, IT
             .Build(out _);
     }
     
-    public void Execute()
+    public void Execute(TickSystemCommand command)
     {
         var sw = new Stopwatch();
         sw.Start();
@@ -39,7 +39,7 @@ public sealed class HeavyJobWritableSystem<TComponent1, TComponent2> : ITickSyst
             .Build(out _);
     }
     
-    public void Execute()
+    public void Execute(TickSystemCommand command)
     {
         var sw = new Stopwatch();
         sw.Start();

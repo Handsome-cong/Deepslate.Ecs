@@ -36,7 +36,7 @@ public sealed class QueryInitializerGeneratorTests(ITestOutputHelper outputHelpe
                                                           InitializeQuery(builder);
                                                       }
                                                   
-                                                      public void Execute()
+                                                      public void Execute(TickSystemCommand command)
                                                       {
                                                           throw new NotImplementedException();
                                                       }

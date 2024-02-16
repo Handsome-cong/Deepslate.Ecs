@@ -29,5 +29,5 @@ public interface IReactBeforeDestroy<TComponent> : IReactSystemExecutor
 public interface IReactBeforeMove<TComponent> : IReactSystemExecutor
     where TComponent : IComponentData
 {
-    void BeforeMove(ref TComponent from, ref TComponent to);
+    void BeforeMove(Span<TComponent> from, Span<TComponent> to);
 }

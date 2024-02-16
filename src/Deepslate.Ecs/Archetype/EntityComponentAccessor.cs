@@ -6,7 +6,6 @@ public readonly struct EntityComponentAccessor
 {
     public Entity Entity { get; }
     public Archetype Archetype { get; }
-    public bool Alive => Archetype.ContainsEntity(Entity);
 
     internal EntityComponentAccessor(Entity entity, Archetype archetype)
     {

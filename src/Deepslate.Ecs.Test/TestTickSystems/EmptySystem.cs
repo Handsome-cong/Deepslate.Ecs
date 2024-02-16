@@ -2,7 +2,7 @@
 
 public sealed class EmptySystem : ITickSystemExecutor
 {
-    public void Execute()
+    public void Execute(TickSystemCommand command)
     {
         throw new NotImplementedException();
     }

@@ -14,6 +14,9 @@ public sealed partial class WorldBuilder
     private readonly Dictionary<Type, int> _componentTypeIds = [];
     private readonly Dictionary<Type, List<int>> _componentTypeToArchetypeIds = [];
 
+    internal readonly ComponentStorageFactory ComponentStorageFactory = new();
+    internal readonly StorageArrayFactory StorageArrayFactory = new();
+
     internal IReadOnlyDictionary<Type, List<int>> ComponentTypeToArchetypeIds => _componentTypeToArchetypeIds;
     internal IReadOnlyDictionary<Type, int> ComponentTypeIds => _componentTypeIds;
 
@@ -115,7 +118,6 @@ public sealed partial class WorldBuilder
             return this;
         }
 
-        ArrayFactory.RegisterStorageArrayFactory<TComponent>();
         _componentTypeIds.Add(componentType, _componentTypeIds.Count);
         if (UnmanagedHelper.IsUnmanaged<TComponent>())
         {
@@ -181,26 +183,26 @@ public sealed partial class WorldBuilder
     private void RegisterManagedFactories<TComponent>()
         where TComponent : IComponentData
     {
-        ArrayFactory.RegisterStorageArrayFactory<TComponent>();
-        ComponentStorageFactory.RegisterManagedComponentStorageFactory<TComponent>();
+        StorageArrayFactory.RegisterFactory<TComponent>();
+        ComponentStorageFactory.RegisterManagedFactory<TComponent>();
     }
 
     private void RegisterUnmanagedFactories<TComponent>()
         where TComponent : unmanaged, IComponentData
     {
-        ArrayFactory.RegisterStorageArrayFactory<TComponent>();
-        ComponentStorageFactory.RegisterUnmanagedComponentStorageFactory<TComponent>();
+        StorageArrayFactory.RegisterFactory<TComponent>();
+        ComponentStorageFactory.RegisterUnmanagedFactory<TComponent>();
     }
 
     private void RegisterManagedFactories(Type componentType)
     {
-        ArrayFactory.RegisterStorageArrayFactory(componentType);
-        ComponentStorageFactory.RegisterManagedComponentStorageFactory(componentType);
+        StorageArrayFactory.RegisterFactory(componentType);
+        ComponentStorageFactory.RegisterManagedFactory(componentType);
     }
 
     private void RegisterUnmanagedFactories(Type componentType)
     {
-        ArrayFactory.RegisterStorageArrayFactory(componentType);
-        ComponentStorageFactory.RegisterUnmanagedComponentStorageFactory(componentType);
+        StorageArrayFactory.RegisterFactory(componentType);
+        ComponentStorageFactory.RegisterUnmanagedFactory(componentType);
     }
 }

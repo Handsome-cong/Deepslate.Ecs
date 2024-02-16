@@ -2,7 +2,7 @@
 
 public interface ITickSystemExecutor : IDisposable
 {
-    void Execute();
+    void Execute(TickSystemCommand command);
 
     void IDisposable.Dispose()
     {
