@@ -4,7 +4,7 @@ namespace Deepslate.Ecs.Test.TestTickSystems;
 
 public sealed class HeavyJobSystem : ITickSystemExecutor, ITimeRecorded
 {
-    public const int ExecutionElapsedTime = 200;
+    public const int ExecutionElapsedTime = 500;
     public long ElapsedTime { get; private set; }
 
     public void Execute(TickSystemCommand command)
