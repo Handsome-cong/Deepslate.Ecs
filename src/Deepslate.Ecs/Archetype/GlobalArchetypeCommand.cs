@@ -29,6 +29,12 @@ public readonly struct GlobalArchetypeCommand
         }
         return ref archetype.GetComponent<TComponent>(entity);
     }
+
+    public Span<TComponent> GetComponents<TComponent>(Archetype archetype)
+        where TComponent : IComponentData
+    {
+        return archetype.GetStorage<TComponent>().AsSpan();
+    }
     
     public Archetype? GetArchetype(Entity entity)
     {
