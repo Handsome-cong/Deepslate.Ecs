@@ -1,5 +1,4 @@
 ﻿using Deepslate.Ecs.GenericWrapper;
-using Xunit.Abstractions;
 
 namespace Deepslate.Ecs.Test.TestTickSystems;
 

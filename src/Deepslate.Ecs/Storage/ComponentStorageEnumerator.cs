@@ -1,6 +1,4 @@
-﻿using Deepslate.Ecs;
-
-namespace Deepslate.Ecs;
+﻿namespace Deepslate.Ecs;
 
 public ref struct ComponentStorageEnumerator<TComponent>
     where TComponent : IComponentData

@@ -1,6 +1,4 @@
-﻿using Deepslate.Ecs.Util;
-
-namespace Deepslate.Ecs;
+﻿namespace Deepslate.Ecs;
 
 public sealed class ArchetypeBuilder
 {

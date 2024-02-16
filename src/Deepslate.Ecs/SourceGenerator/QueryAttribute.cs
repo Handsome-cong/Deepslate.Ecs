@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-
-namespace Deepslate.Ecs.SourceGenerator;
+﻿namespace Deepslate.Ecs.SourceGenerator;
 
 // Whenever these changed, check the generator and make sure the code is still valid
 
