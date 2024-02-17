@@ -23,7 +23,7 @@ public sealed partial class CreationSystem : ITickSystemExecutor
         if (systemCommand.TryCreateInstantArchetypeCommand(_query, _query.MatchedArchetypes[0], out var command))
         {
             var instantCommand = command!.Value;
-            foreach (var i in Enumerable.Range(0, _count))
+            foreach (var _ in Enumerable.Range(0, _count))
             {
                 instantCommand.RecordCreate(_commandBuffer);
             }

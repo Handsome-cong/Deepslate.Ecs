@@ -11,7 +11,7 @@ public sealed class SchedulerTests(ITestOutputHelper outputHelper)
     public void ParallelExecution()
     {
         var builder = new WorldBuilder();
-        builder.WithArchetypeAndBuild<Position>(out var positionArchetype);
+        builder.WithArchetypeAndBuild<Position>(out _);
         var stageBuilder = builder.AddStage();
         var systemBuilder = stageBuilder.AddTickSystem();
         systemBuilder.Build(new HeavyJobReadOnlySystem<Position>(systemBuilder), out var system1);

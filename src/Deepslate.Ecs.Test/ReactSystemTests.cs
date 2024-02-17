@@ -1,10 +1,9 @@
 ﻿using Deepslate.Ecs.Extensions;
 using Deepslate.Ecs.Test.TestTickSystems;
-using Xunit.Abstractions;
 
 namespace Deepslate.Ecs.Test;
 
-public sealed class ReactSystemTests(ITestOutputHelper outputHelper)
+public sealed class ReactSystemTests
 {
     [Fact]
     public void AfterAlloc()
@@ -12,7 +11,7 @@ public sealed class ReactSystemTests(ITestOutputHelper outputHelper)
         var allocated = false;
         using var world = new WorldBuilder()
             .WithReactAfterAlloc<Position>(_ => allocated = true)
-            .WithArchetypeAndBuild<Position, Velocity>(out var archetype)
+            .WithArchetypeAndBuild<Position, Velocity>(out _)
             .AddStage(stageBuilder =>
             {
                 stageBuilder.AddTickSystem(tickSystemBuilder =>
@@ -59,8 +58,8 @@ public sealed class ReactSystemTests(ITestOutputHelper outputHelper)
         const int creationCount = 10;
         var destroyedCount = 0;
         using var world = new WorldBuilder()
-            .WithReactBeforeDestroy<Position>((ref Position pos) => destroyedCount++)
-            .WithArchetypeAndBuild<Position, Velocity>(out var archetype)
+            .WithReactBeforeDestroy((ref Position _) => destroyedCount++)
+            .WithArchetypeAndBuild<Position, Velocity>(out _)
             .AddStage(stageBuilder =>
             {
                 stageBuilder
@@ -87,7 +86,7 @@ public sealed class ReactSystemTests(ITestOutputHelper outputHelper)
         var releasedCount = 0;
         var worldBuilder = new WorldBuilder()
             .WithReactBeforeFree<Position>(positions => releasedCount += positions.Length)
-            .WithArchetypeAndBuild<Position, Velocity>(out var archetype)
+            .WithArchetypeAndBuild<Position, Velocity>(out _)
             .AddStage(stageBuilder =>
             {
                 stageBuilder
@@ -111,8 +110,8 @@ public sealed class ReactSystemTests(ITestOutputHelper outputHelper)
         const int secondCreationCount = 1000;
         var movedCount = 0;
         using var world = new WorldBuilder()
-            .WithReactBeforeMove<Position>((from, to) => movedCount += from.Length)
-            .WithArchetypeAndBuild<Position, Velocity>(out var archetype)
+            .WithReactBeforeMove<Position>((from, _) => movedCount += from.Length)
+            .WithArchetypeAndBuild<Position, Velocity>(out _)
             .AddStage(stageBuilder =>
             {
                 stageBuilder

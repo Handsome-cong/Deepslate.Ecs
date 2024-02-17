@@ -338,7 +338,7 @@ public sealed class QueryInitializerGenerator : IIncrementalGenerator
         StringBuilder currentStringBuilder,
         QueryMember queryMember)
     {
-        // TODO: Add an analyzer to check if the attribute is used correctly
+        // Maybe we should add an analyzer to check if the attribute is used correctly
         currentStringBuilder.Append("\n        builder.AddQuery()\n");
 
         foreach (var writableComponent in queryMember.Writable)

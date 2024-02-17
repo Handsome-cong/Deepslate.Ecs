@@ -19,6 +19,5 @@ public sealed partial class MultiQuerySystem : ITickSystemExecutor
 
     public void Execute(TickSystemCommand command)
     {
-        throw new NotImplementedException();
     }
 }

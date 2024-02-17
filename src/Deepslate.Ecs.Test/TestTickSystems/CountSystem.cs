@@ -2,7 +2,7 @@
 
 public sealed class CountSystem : ITickSystemExecutor
 {
-    public int ExecutionCount { get; private set; } = 0;
+    public int ExecutionCount { get; private set; }
 
     public CountSystem(TickSystemBuilder builder)
     {
