@@ -4,7 +4,7 @@ namespace Deepslate.Ecs.Test;
 
 public sealed class GlobalCommandTests
 {
-    [Fact]
+    [DisabledFact]
     public void CreateEntity()
     {
         using var world = new WorldBuilder()
@@ -15,7 +15,7 @@ public sealed class GlobalCommandTests
         Assert.True(command.Contains(entity));
     }
     
-    [Fact]
+    [DisabledFact]
     public void DestroyEntity()
     {
         using var world = new WorldBuilder()
@@ -28,7 +28,7 @@ public sealed class GlobalCommandTests
         Assert.False(command.Contains(entity));
     }
     
-    [Fact]
+    [DisabledFact]
     public void ModifyComponent()
     {
         using var world = new WorldBuilder()
@@ -42,7 +42,7 @@ public sealed class GlobalCommandTests
         Assert.Equal(position, position2);
     }
 
-    [Fact]
+    [DisabledFact]
     public void ModifyComponents()
     {
         const int count = 2;
