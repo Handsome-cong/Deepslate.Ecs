@@ -22,7 +22,7 @@ public sealed partial class Archetype
         var index = _entities.IndexOf(entity);
         if (index == EntityStorage.NoIndex)
         {
-            throw new ArgumentOutOfRangeException(nameof(TComponent), "Component does not exist in this archetype.");
+            throw new ArgumentOutOfRangeException(nameof(TComponent), "Entity does not exist in this archetype.");
         }
 
         return ref GetComponents<TComponent>(index..(index + 1))[0];
