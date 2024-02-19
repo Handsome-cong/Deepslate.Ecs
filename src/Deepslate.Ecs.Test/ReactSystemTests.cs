@@ -79,7 +79,7 @@ public sealed class ReactSystemTests
         Assert.Equal(creationCount, destroyedCount);
     }
 
-    [DisabledFact]
+    [Fact]
     public void BeforeFree()
     {
         const int creationCount = 10;
@@ -103,7 +103,7 @@ public sealed class ReactSystemTests
         Assert.Equal(creationCount, releasedCount);
     }
 
-    [DisabledFact]
+    [Fact]
     public void BeforeMove()
     {
         const int firstCreationCount = 5;
