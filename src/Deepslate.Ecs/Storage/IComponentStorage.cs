@@ -17,7 +17,7 @@ public interface IComponentDataStorage : IDisposable
     void Add(int count = 1);
     void Pop(int count = 1);
     void Remove(int index);
-    void RemoveMany(int[] sortedIndices);
+    void RemoveMany(Span<int> sortedIndices);
 }
 
 public interface IComponentDataStorage<TComponent> : IComponentDataStorage
@@ -60,7 +60,7 @@ public interface IComponentDataStorage<TComponent> : IComponentDataStorage
         Pop();
     }
 
-    void IComponentDataStorage.RemoveMany(int[] sortedIndices)
+    void IComponentDataStorage.RemoveMany(Span<int> sortedIndices)
     {
         if (sortedIndices.Length == 0)
         {
