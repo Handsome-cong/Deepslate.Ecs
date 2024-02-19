@@ -111,11 +111,12 @@ public sealed class TickSystem
 
         InstantCommandFlags = new bool[Queries.Count];
         var start = 0;
+        var i = 0;
         foreach (var query in Queries)
         {
             query.UsageCodes.CopyTo(_usageCodes.AsSpan(start, query.UsageCodes.Length));
             start += query.UsageCodes.Length;
-            InstantCommandFlags[start] = query.RequireInstantCommand;
+            InstantCommandFlags[i++] = query.RequireInstantCommand;
         }
 
         MatchedArchetypes = Queries.SelectMany(query => query.MatchedArchetypes).ToFrozenSet();
