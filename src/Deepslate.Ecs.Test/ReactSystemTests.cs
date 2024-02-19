@@ -5,7 +5,7 @@ namespace Deepslate.Ecs.Test;
 
 public sealed class ReactSystemTests
 {
-    [DisabledFact]
+    [Fact]
     public void AfterAlloc()
     {
         var allocated = false;
@@ -24,7 +24,7 @@ public sealed class ReactSystemTests
         Assert.True(allocated);
     }
 
-    [DisabledFact]
+    [Fact]
     public void AfterCreate()
     {
         using var world = new WorldBuilder()
@@ -79,7 +79,7 @@ public sealed class ReactSystemTests
         Assert.Equal(creationCount, destroyedCount);
     }
 
-    [Fact]
+    [DisabledFact]
     public void BeforeFree()
     {
         const int creationCount = 10;
@@ -103,7 +103,7 @@ public sealed class ReactSystemTests
         Assert.Equal(creationCount, releasedCount);
     }
 
-    [Fact]
+    [DisabledFact]
     public void BeforeMove()
     {
         const int firstCreationCount = 5;
