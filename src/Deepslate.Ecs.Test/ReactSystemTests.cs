@@ -3,6 +3,10 @@ using Deepslate.Ecs.Test.TestTickSystems;
 
 namespace Deepslate.Ecs.Test;
 
+[CollectionDefinition("ReactSystem", DisableParallelization = true)]
+public class ReactSystemCollection;
+
+[Collection("ReactSystem")]
 public sealed class ReactSystemTests
 {
     [Fact(Timeout = 1000)]
