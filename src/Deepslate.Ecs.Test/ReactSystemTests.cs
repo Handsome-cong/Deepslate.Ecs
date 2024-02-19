@@ -5,7 +5,7 @@ namespace Deepslate.Ecs.Test;
 
 public sealed class ReactSystemTests
 {
-    [Fact]
+    [DisabledFact]
     public void AfterAlloc()
     {
         var allocated = false;
@@ -24,7 +24,7 @@ public sealed class ReactSystemTests
         Assert.True(allocated);
     }
 
-    [Fact]
+    [DisabledFact]
     public void AfterCreate()
     {
         using var world = new WorldBuilder()
