@@ -24,7 +24,7 @@ jobs:
       run: dotnet restore
     - name: Create local tool manifest
       run: dotnet new tool-manifest
-    - name: Install dotnet-t4 global tool
+    - name: Install dotnet-t4 tool
       run: dotnet tool install --local dotnet-t4
     - name: Execute T4 templates
       shell: pwsh
