@@ -7,7 +7,7 @@ public sealed class EntityCommandTests
 {
     private const int CreationCount = 2;
 
-    [DisabledFact]
+    [Fact]
     public void Create()
     {
         TickSystem statisticsSystem = default!;
@@ -27,7 +27,7 @@ public sealed class EntityCommandTests
         Assert.Equal(CreationCount, statisticsSystemExecutor.Count);
     }
 
-    [DisabledFact]
+    [Fact]
     public void Destroy()
     {
         TickSystem statisticsSystem1 = default!;
@@ -58,7 +58,7 @@ public sealed class EntityCommandTests
         Assert.Equal(0, statisticsSystemExecutor2.Count);
     }
 
-    [DisabledFact]
+    [Fact]
     public void RecordCreate()
     {
         TickSystem statisticsSystem = default!;
@@ -78,7 +78,7 @@ public sealed class EntityCommandTests
         Assert.Equal(CreationCount, statisticsSystemExecutor.Count);
     }
 
-    [DisabledFact]
+    [Fact]
     public void RecordDestroy()
     {
         TickSystem statisticsSystem1 = default!;
@@ -108,7 +108,7 @@ public sealed class EntityCommandTests
         Assert.Equal(0, statisticsSystemExecutor2.Count);
     }
 
-    [DisabledFact]
+    [Fact]
     public void DeferCreate()
     {
         TickSystem statisticsSystem1 = default!;
@@ -137,7 +137,7 @@ public sealed class EntityCommandTests
         Assert.Equal(CreationCount, statisticsSystemExecutor2.Count);
     }
 
-    [DisabledFact]
+    [Fact]
     public void DeferDestroy()
     {
         TickSystem statisticsSystem1 = default!;

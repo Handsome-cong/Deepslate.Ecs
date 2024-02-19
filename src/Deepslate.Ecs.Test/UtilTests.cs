@@ -4,7 +4,7 @@ namespace Deepslate.Ecs.Test;
 
 public sealed class UtilTests
 {
-    [DisabledFact]
+    [Fact]
     public void IsUnmanaged()
     {
         Assert.True(UnmanagedHelper.IsUnmanaged(typeof(Position)));
@@ -13,7 +13,7 @@ public sealed class UtilTests
         Assert.False(UnmanagedHelper.IsUnmanaged<Nested>());
     }
     
-    [DisabledFact]
+    [Fact]
     public void GuardClauses()
     {
         Guard.IsComponent(typeof(Position));
