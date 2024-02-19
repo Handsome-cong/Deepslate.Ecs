@@ -1,12 +1,11 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Deepslate.Ecs;
 
 public sealed partial class Archetype
 {
-    private uint _maxEntityId;
     private EntityStorage _entities = new();
-    private readonly Queue<Entity> _removedEntities = new();
 
     internal int Count => _entities.Count;
     internal ReadOnlySpan<Entity> Entities => _entities.AsSpan();
@@ -21,7 +20,6 @@ public sealed partial class Archetype
             return false;
         }
 
-        _removedEntities.Enqueue(entity);
         foreach (var storage in _componentStorages)
         {
             storage.Remove(componentIndex);
@@ -41,38 +39,29 @@ public sealed partial class Archetype
                 return;
         }
 
-        var sortedIndices = new int[entities.Length];
-        for (var i = 0; i < entities.Length; i++)
+        var removedIndices = _entities.RemoveEntities(entities);
+        var sortedIndices = new List<int>(removedIndices.Length);
+        for (var i = 0; i < removedIndices.Length; i++)
         {
-            var entity = entities[i];
-            if (!_entities.RemoveEntity(entity, out var componentIndex))
+            var index = removedIndices[i];
+            if (index == EntityStorage.NoIndex)
             {
                 continue;
             }
-
-            _removedEntities.Enqueue(entity);
-            sortedIndices[i] = componentIndex;
+            
+            sortedIndices.Add(index);
         }
 
-        Array.Sort(sortedIndices);
+        sortedIndices.Sort();
         foreach (var storage in _componentStorages)
         {
-            storage.RemoveMany(sortedIndices);
+            storage.RemoveMany(CollectionsMarshal.AsSpan(sortedIndices));
         }
     }
 
     internal Entity Create()
     {
-        if (_removedEntities.TryDequeue(out var entity))
-        {
-            entity = entity.BumpVersion();
-        }
-        else
-        {
-            entity = new Entity(_maxEntityId++, Id, 0);
-        }
-
-        _ = _entities.AddEntity(entity);
+        var entity = _entities.AddEntity(Id);
 
         foreach (var storage in _componentStorages)
         {
@@ -92,28 +81,7 @@ public sealed partial class Archetype
                 return [Create()];
         }
 
-        var entities = new Entity[count];
-
-        var currentEntityCount = 0;
-        for (; currentEntityCount < count; ++currentEntityCount)
-        {
-            if (!_removedEntities.TryDequeue(out var entity))
-            {
-                break;
-            }
-
-            entities[currentEntityCount] = entity.BumpVersion();
-        }
-
-        for (; currentEntityCount < count; ++currentEntityCount)
-        {
-            entities[currentEntityCount] = new Entity(_maxEntityId++, Id, 0);
-        }
-
-        foreach (var entity in entities)
-        {
-            _entities.AddEntity(entity);
-        }
+        var entities = _entities.AddEntities(Id, count);
 
         // Different from destruction, creation is much more faster, especially when the empty space is enough.
 

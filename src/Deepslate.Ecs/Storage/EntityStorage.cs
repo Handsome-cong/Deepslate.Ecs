@@ -11,6 +11,9 @@ internal struct EntityStorage()
 
     private Entity[] _entities = Array.Empty<Entity>();
     private int[]?[] _indicesPages = Array.Empty<int[]>();
+    
+    private readonly Queue<Entity> _removedEntities = new();
+    private uint _maxEntityId;
 
     /// <summary>
     /// The number of entities in this storage.
@@ -46,22 +49,36 @@ internal struct EntityStorage()
         return dataIndex;
     }
     
-    public int AddEntity(Entity entity)
+    public Entity AddEntity(ushort archetypeId)
     {
+        if (_removedEntities.TryDequeue(out var entity))
+        {
+            entity = entity.BumpVersion();
+        }
+        else
+        {
+            entity = new Entity(_maxEntityId++, archetypeId, 0);
+        }
+        
         var pageIndex = (int)entity.Id / SizeOfPage;
         var indexInPage = (int)entity.Id % SizeOfPage;
 
         var page = EnsurePage(pageIndex);
-        var dataIndex = page[indexInPage];
-        if (dataIndex >= 0)
-        {
-            throw new ArgumentException("Entity already exists.", nameof(entity));
-        }
-
         EnsureDataCapacity(Count);
         _entities[Count] = entity;
-        page[indexInPage] = Count;
-        return Count++;
+        page[indexInPage] = Count++;
+        return entity;
+    }
+
+    public Entity[] AddEntities(ushort archetypeId, int count)
+    {
+        EnsureDataCapacity(Count + count);
+        var entities = new Entity[count];
+        for (var i = 0; i < count; i++)
+        {
+            entities[i] = AddEntity(archetypeId);
+        }
+        return entities;
     }
 
     public bool RemoveEntity(Entity entity, out int dataIndex)
@@ -82,9 +99,52 @@ internal struct EntityStorage()
         }
 
         Count--;
-        _entities[dataIndex] = _entities[Count];
+        if (dataIndex < Count)
+        {
+            var tail = _entities[Count];
+            _entities[dataIndex] = tail;
+            
+            var tailPageIndex = (int)tail.Id / SizeOfPage;
+            var tailIndexInPage = (int)tail.Id % SizeOfPage;
+            _indicesPages[tailPageIndex]![tailIndexInPage] = dataIndex;
+        }
         page[indexInPage] = NoIndex;
         return true;
+    }
+
+    public int[] RemoveEntities(Span<Entity> entities)
+    {
+        var dataIndices = new int[entities.Length];
+        Array.Fill(dataIndices, NoIndex);
+        for(var i = 0; i<entities.Length;i++)
+        {
+            var entity = entities[i];
+            var pageIndex = (int)entity.Id / SizeOfPage;
+            var indexInPage = (int)entity.Id % SizeOfPage;
+
+            if (_indicesPages[pageIndex] is not { } page)
+            {
+                continue;
+            }
+
+            var dataIndex = page[indexInPage];
+            if (dataIndex == NoIndex)
+            {
+                continue;
+            }
+
+            dataIndices[i] = dataIndex;
+        }
+        
+        for(var i = 0; i<entities.Length;i++)
+        {
+            var entity = entities[i];
+            if (!RemoveEntity(entity, out _))
+            {
+                dataIndices[i] = NoIndex;
+            }
+        }
+        return dataIndices;
     }
 
     private int[] EnsurePage(int pageIndex)
