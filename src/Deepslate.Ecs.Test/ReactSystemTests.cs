@@ -3,12 +3,15 @@ using Deepslate.Ecs.Test.TestTickSystems;
 
 namespace Deepslate.Ecs.Test;
 
+// Idk why this is needed, but GitHub Actions will be stuck without it.
+
 [CollectionDefinition("ReactSystem", DisableParallelization = true)]
 public class ReactSystemCollection;
 
+[Collection("ReactSystem")]
 public sealed class ReactSystemTests
 {
-    [Fact(Timeout = 1000)]
+    [Fact]
     public void AfterAlloc()
     {
         var allocated = false;
