@@ -30,7 +30,7 @@ public sealed class Query
 
     public IEnumerable<Type> RequiredWritableComponentTypes => _requiredWritableComponentTypes;
     public IEnumerable<Type> RequiredReadOnlyComponentTypes => _requiredReadOnlyComponentTypes;
-    public bool RequireInstantArchetypeCommand { get; }
+    public bool RequireInstantCommand { get; }
 
     internal Query(
         IEnumerable<Type> requiredWritableComponentTypes,
@@ -38,14 +38,14 @@ public sealed class Query
         IEnumerable<Type> includedComponentTypes,
         IEnumerable<Type> excludedComponentTypes,
         Predicate<Archetype>? filter,
-        bool requireInstantArchetypeCommand)
+        bool requireInstantCommand)
     {
         _requiredWritableComponentTypes = requiredWritableComponentTypes.ToArray();
         _requiredReadOnlyComponentTypes = requiredReadOnlyComponentTypes.ToArray();
         _includedComponentTypes = includedComponentTypes.ToArray();
         _excludedComponentTypes = excludedComponentTypes.ToArray();
         _filter = filter;
-        RequireInstantArchetypeCommand = requireInstantArchetypeCommand;
+        RequireInstantCommand = requireInstantCommand;
     }
 
     internal void PostInitialize(World world)
@@ -151,18 +151,14 @@ public sealed class Query
         FillComponentUsageCode(writableComponentUsageCode, _requiredWritableComponentTypes, componentTypeIds);
         FillComponentUsageCode(readableComponentUsageCode, _requiredWritableComponentTypes, componentTypeIds);
         FillComponentUsageCode(readableComponentUsageCode, _requiredReadOnlyComponentTypes, componentTypeIds);
-        
-        FillComponentUsageCode(readableComponentUsageCode, [typeof(InstantCommandComponent)], componentTypeIds);
 
-        if (RequireInstantArchetypeCommand)
+        if (RequireInstantCommand)
         {
             var allComponentTypes = MatchedArchetypes
                 .SelectMany(archetype => archetype.ComponentTypes)
                 .ToArray();
             FillComponentUsageCode(writableComponentUsageCode, allComponentTypes, componentTypeIds);
             FillComponentUsageCode(readableComponentUsageCode, allComponentTypes, componentTypeIds);
-
-            FillComponentUsageCode(writableComponentUsageCode, [typeof(InstantCommandComponent)], componentTypeIds);
         }
 
         return queryUsageCode;

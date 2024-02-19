@@ -25,6 +25,6 @@ public sealed partial class RecordCreateSystem : ITickSystemExecutor
             command.RecordCreate(_commandBuffer, _query.MatchedArchetypes[0]);
         }
 
-        _commandBuffer.Execute();
+        command.ExecuteCommandBuffer(_commandBuffer);
     }
 }

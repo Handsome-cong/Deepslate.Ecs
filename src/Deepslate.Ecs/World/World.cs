@@ -27,7 +27,6 @@ public sealed class World : IDisposable
     {
         _componentTypes = components
             .OrderBy(component => component.GetHashCode())
-            .Prepend(typeof(InstantCommandComponent))
             .ToArray();
         _archetypes = archetypes.OrderBy(archetype => archetype.Id).ToArray();
         _stages = stages.ToArray();

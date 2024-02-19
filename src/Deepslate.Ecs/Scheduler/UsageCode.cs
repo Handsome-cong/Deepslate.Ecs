@@ -45,10 +45,14 @@ internal struct UsageCode
 
 internal readonly ref struct UsageCodeBundle(
     ReadOnlySpan<UsageCode> data,
+    ReadOnlySpan<bool> instantCommandFlags,
     int allArchetypeCount,
     int allComponentTypeCount)
 {
+    // ReSharper disable once ReplaceWithPrimaryConstructorParameter
     private readonly ReadOnlySpan<UsageCode> _data = data;
+    // ReSharper disable once ReplaceWithPrimaryConstructorParameter
+    private readonly ReadOnlySpan<bool> _instantCommandFlags = instantCommandFlags;
     private readonly int _archetypeCodeCountPerQuery = (allArchetypeCount - 1) / 8 + 1;
     private readonly int _componentTypeCodeCountPerQuery = (allComponentTypeCount - 1) / 8 + 1;
     private int UsageCountPerQuery => _archetypeCodeCountPerQuery + _componentTypeCodeCountPerQuery * 2;
@@ -56,14 +60,11 @@ internal readonly ref struct UsageCodeBundle(
 
     public bool ConflictWith(UsageCodeBundle other)
     {
-        var usageCountPerQuery = UsageCountPerQuery;
         for (var i = 0; i < QueryCount; i++)
         {
-            var selfQuery = _data.Slice(i * usageCountPerQuery, usageCountPerQuery);
             for (var j = 0; j < other.QueryCount; j++)
             {
-                var otherQuery = other._data.Slice(i * usageCountPerQuery, usageCountPerQuery);
-                if (QueryConflict(selfQuery, otherQuery))
+                if (QueryConflict(i, j))
                 {
                     return true;
                 }
@@ -72,14 +73,22 @@ internal readonly ref struct UsageCodeBundle(
 
         return false;
     }
-
-    private bool QueryConflict(ReadOnlySpan<UsageCode> left, ReadOnlySpan<UsageCode> right)
+    
+    
+    private bool QueryConflict(int leftIndex, int rightIndex)
     {
+        var usageCountPerQuery = UsageCountPerQuery;
+        var left = _data.Slice(leftIndex * usageCountPerQuery, usageCountPerQuery);
+        var right = _data.Slice(rightIndex * usageCountPerQuery, usageCountPerQuery);
         var leftArchetypeCodeSpan = left[.._archetypeCodeCountPerQuery];
         var rightArchetypeCodeSpan = right[.._archetypeCodeCountPerQuery];
         if (!SpanConflict(leftArchetypeCodeSpan, rightArchetypeCodeSpan))
         {
             return false;
+        }
+        if (_instantCommandFlags[leftIndex] || _instantCommandFlags[rightIndex])
+        {
+            return true;
         }
 
         var writableRange = _archetypeCodeCountPerQuery..

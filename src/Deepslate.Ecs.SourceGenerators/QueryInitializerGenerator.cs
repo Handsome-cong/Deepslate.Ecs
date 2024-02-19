@@ -410,7 +410,7 @@ public sealed class QueryInitializerGenerator : IIncrementalGenerator
 
         if (queryMember.InstantCommand)
         {
-            currentStringBuilder.Append("            .RequireInstantArchetypeCommand()\n");
+            currentStringBuilder.Append("            .RequireInstantCommand()\n");
         }
 
         currentStringBuilder.Append("            .Build(out configuredQuery);\n");

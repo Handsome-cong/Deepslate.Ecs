@@ -66,8 +66,8 @@ public partial struct Writable<#= writableGenericParameters #>
             public QueryBuilder WithFilter(Predicate<Archetype> filter) =>
                 new(TypelessBuilder.WithFilter(filter));
 
-            public QueryBuilder RequireInstantArchetypeCommand() =>
-                new(TypelessBuilder.RequireInstantArchetypeCommand());
+            public QueryBuilder RequireInstantCommand() =>
+                new(TypelessBuilder.RequireInstantCommand());
 
 <#
             if (writableGenericParameterCount < MaxGenericParameters)

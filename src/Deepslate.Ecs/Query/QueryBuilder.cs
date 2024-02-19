@@ -11,7 +11,7 @@ public class QueryBuilder
     private readonly List<Type> _excludedComponentTypes  = [];
 
     private Predicate<Archetype>? _filter; 
-    private bool _requireInstantArchetypeCommand;
+    private bool _requireInstantCommand;
 
     public Query? Result { get; private set; }
     public TickSystemBuilder TickSystemBuilder { get; }
@@ -55,9 +55,9 @@ public class QueryBuilder
         return this;
     }
 
-    public QueryBuilder RequireInstantArchetypeCommand()
+    public QueryBuilder RequireInstantCommand()
     {
-        _requireInstantArchetypeCommand = true;
+        _requireInstantCommand = true;
         return this;
     }
 
@@ -85,7 +85,7 @@ public class QueryBuilder
             _includedComponentTypes,
             _excludedComponentTypes,
             _filter,
-            _requireInstantArchetypeCommand);
+            _requireInstantCommand);
 
         Result = query;
         configuredQuery = query;

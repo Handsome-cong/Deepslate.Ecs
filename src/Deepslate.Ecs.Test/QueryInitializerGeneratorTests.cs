@@ -114,7 +114,7 @@ public sealed class QueryInitializerGeneratorTests(ITestOutputHelper outputHelpe
             {
                 if (attribute is RequireInstantCommandAttribute)
                 {
-                    queryBuilder.RequireInstantArchetypeCommand();
+                    queryBuilder.RequireInstantCommand();
                     continue;
                 }
 

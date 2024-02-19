@@ -25,6 +25,6 @@ public sealed partial class RecordDestroySystem : ITickSystemExecutor
         }
 
         command.RecordDestroy(_commandBuffer, entities);
-        _commandBuffer.Execute();
+        command.ExecuteCommandBuffer(_commandBuffer);
     }
 }

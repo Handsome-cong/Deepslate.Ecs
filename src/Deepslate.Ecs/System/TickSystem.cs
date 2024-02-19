@@ -13,6 +13,7 @@ public sealed class TickSystem
 
     internal IReadOnlySet<TickSystem> OtherSystemsThisDependsOn => _otherSystemsThisDependsOn;
     internal ReadOnlySpan<UsageCode> UsageCodes => _usageCodes;
+    internal bool[] InstantCommandFlags { get; private set; } = Array.Empty<bool>();
 
     internal FrozenDictionary<ushort, Archetype> MatchedArchetypesById { get; private set; } =
         FrozenDictionary<ushort, Archetype>.Empty;
@@ -58,7 +59,7 @@ public sealed class TickSystem
 
         foreach (var query in Queries)
         {
-            if (query.RequireInstantArchetypeCommand)
+            if (query.RequireInstantCommand)
             {
                 foreach (var archetype in query.MatchedArchetypes)
                 {
@@ -108,16 +109,18 @@ public sealed class TickSystem
         var length = Queries.Aggregate(0, (current, query) => current + query.UsageCodes.Length);
         _usageCodes = new UsageCode[length];
 
+        InstantCommandFlags = new bool[Queries.Count];
         var start = 0;
         foreach (var query in Queries)
         {
             query.UsageCodes.CopyTo(_usageCodes.AsSpan(start, query.UsageCodes.Length));
             start += query.UsageCodes.Length;
+            InstantCommandFlags[start] = query.RequireInstantCommand;
         }
 
         MatchedArchetypes = Queries.SelectMany(query => query.MatchedArchetypes).ToFrozenSet();
         MatchedArchetypesWithInstantCommand = Queries.SelectMany(
-                query => query.RequireInstantArchetypeCommand
+                query => query.RequireInstantCommand
                     ? query.MatchedArchetypesSet
                     : Enumerable.Empty<Archetype>())
             .ToFrozenSet();

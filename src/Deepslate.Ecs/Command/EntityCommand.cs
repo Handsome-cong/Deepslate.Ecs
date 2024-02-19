@@ -58,7 +58,7 @@ public readonly ref struct EntityCommand
     /// <seealso cref="Create"/>
     /// <seealso cref="TryCreate"/>
     /// <seealso cref="DeferCreate"/>
-    /// <seealso cref="QueryBuilder.RequireInstantArchetypeCommand"/>
+    /// <seealso cref="QueryBuilder.RequireInstantCommand"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void RecordCreate(
         CommandBuffer buffer,
@@ -103,7 +103,7 @@ public readonly ref struct EntityCommand
     /// <seealso cref="Create"/>
     /// <seealso cref="TryDestroy"/>
     /// <seealso cref="DeferCreate"/>
-    /// <seealso cref="QueryBuilder.RequireInstantArchetypeCommand"/>   
+    /// <seealso cref="QueryBuilder.RequireInstantCommand"/>   
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryRecordCreate(
         CommandBuffer buffer,
@@ -150,7 +150,7 @@ public readonly ref struct EntityCommand
     /// <seealso cref="Destroy"/>
     /// <seealso cref="TryDestroy"/>
     /// <seealso cref="DeferDestroy"/>
-    /// <seealso cref="QueryBuilder.RequireInstantArchetypeCommand"/>
+    /// <seealso cref="QueryBuilder.RequireInstantCommand"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int RecordDestroy(
         CommandBuffer buffer,
@@ -214,7 +214,7 @@ public readonly ref struct EntityCommand
     /// <seealso cref="Destroy"/>
     /// <seealso cref="TryDestroy"/>
     /// <seealso cref="DeferDestroy"/>
-    /// <seealso cref="QueryBuilder.RequireInstantArchetypeCommand"/>
+    /// <seealso cref="QueryBuilder.RequireInstantCommand"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int TryRecordDestroy(
         CommandBuffer buffer,
@@ -308,7 +308,7 @@ public readonly ref struct EntityCommand
     /// <seealso cref="DeferCreate"/>
     /// <seealso cref="RecordCreate"/>
     /// <seealso cref="TryRecordCreate"/>
-    /// <seealso cref="QueryBuilder.RequireInstantArchetypeCommand"/>
+    /// <seealso cref="QueryBuilder.RequireInstantCommand"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Entity Create(Archetype archetype)
     {
@@ -334,7 +334,7 @@ public readonly ref struct EntityCommand
     /// <seealso cref="DeferCreate"/>
     /// <seealso cref="RecordCreate"/>
     /// <seealso cref="TryRecordCreate"/>
-    /// <seealso cref="QueryBuilder.RequireInstantArchetypeCommand"/>
+    /// <seealso cref="QueryBuilder.RequireInstantCommand"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryCreate(Archetype archetype, out Entity entity)
     {
@@ -363,7 +363,7 @@ public readonly ref struct EntityCommand
     /// <seealso cref="DeferDestroy"/>
     /// <seealso cref="RecordDestroy"/>
     /// <seealso cref="TryRecordDestroy"/>
-    /// <seealso cref="QueryBuilder.RequireInstantArchetypeCommand"/>
+    /// <seealso cref="QueryBuilder.RequireInstantCommand"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Destroy(Entity entity)
     {
@@ -387,7 +387,7 @@ public readonly ref struct EntityCommand
     /// <seealso cref="DeferDestroy"/>
     /// <seealso cref="RecordDestroy"/>
     /// <seealso cref="TryRecordDestroy"/>
-    /// <seealso cref="QueryBuilder.RequireInstantArchetypeCommand"/>
+    /// <seealso cref="QueryBuilder.RequireInstantCommand"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryDestroy(Entity entity)
     {
@@ -638,7 +638,7 @@ public readonly ref struct EntityCommand
     /// <seealso cref="TryDestroy"/>
     /// <seealso cref="RecordDestroy"/>
     /// <seealso cref="TryRecordDestroy"/>
-    /// <seealso cref="QueryBuilder.RequireInstantArchetypeCommand"/>
+    /// <seealso cref="QueryBuilder.RequireInstantCommand"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int DeferDestroy(
         IEnumerable<Entity> entities,
