@@ -1,6 +1,7 @@
 ﻿<#@ template language="C#" #>
 <#@ include file="../Constants.ttinclude"#>
 <#@ output extension="cs"#>
+<#@ assembly name="System.Core"#>
 <#@ import namespace="System.Linq" #>
 namespace Deepslate.Ecs.SourceGenerator;
 
@@ -12,16 +13,16 @@ namespace Deepslate.Ecs.SourceGenerator;
         var wheres = string.Concat(Enumerable.Range(1, genericParameterCount).Select(i => $"\n    where T{i} : IComponentData"));
 #>
 [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
-public sealed class RequireReadOnlyAttribute<#= genericParameters #> : QueryAttribute<#= wheres #>;
+public sealed class WithReadOnlyAttribute<#= genericParameters #> : QueryAttribute<#= wheres #>;
 
 [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
-public sealed class RequireWritableAttribute<#= genericParameters #> : QueryAttribute<#= wheres #>;
+public sealed class WithWritableAttribute<#= genericParameters #> : QueryAttribute<#= wheres #>;
 
 [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
-public sealed class WithAttribute<#= genericParameters #> : QueryAttribute<#= wheres #>;
+public sealed class WithIncludedAttribute<#= genericParameters #> : QueryAttribute<#= wheres #>;
 
 [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
-public sealed class WithoutAttribute<#= genericParameters #> : QueryAttribute<#= wheres #>;
+public sealed class WithExcludedAttribute<#= genericParameters #> : QueryAttribute<#= wheres #>;
 
 <#
     }

@@ -1,5 +1,6 @@
 ﻿<#@ template language="C#" #>
 <#@ output extension="cs"#>
+<#@ assembly name="System.Core"#>
 <#@ import namespace="System.Linq" #>
 <#@ include file="../../Constants.ttinclude"#>
 using System.Runtime.CompilerServices;
@@ -34,11 +35,17 @@ public partial struct Writable<#= writableGenericParameters #>
                     .Select(i => $"        where TReadOnly{i} : IComponentData\n"));
 
             var writableStorages = string.Join("\n", Enumerable.Range(1, writableGenericParameterCount)
-                .Select(i => $"            private readonly IComponentDataStorage<TWritable{i}>[] _writable{i}Storages = query.GetStorages<TWritable{i}>();"));
+                .Select(i => $"            private IComponentDataStorage<TWritable{i}>[] _writable{i}Storages = default!;"));
 
             var readOnlyStorages = string.Join("\n", Enumerable.Range(1, readOnlyGenericParameterCount)
-                .Select(i => $"            private readonly IComponentDataStorage<TReadOnly{i}>[] _readOnly{i}Storages = query.GetStorages<TReadOnly{i}>();"));
+                .Select(i => $"            private IComponentDataStorage<TReadOnly{i}>[] _readOnly{i}Storages = default!;"));
 
+            var writableStoragesInitialization = string.Join("\n", Enumerable.Range(1, writableGenericParameterCount)
+                .Select(i => $"                _writable{i}Storages = TypelessQuery.GetStorages<TWritable{i}>();"));
+            
+            var readOnlyStoragesInitialization = string.Join("\n", Enumerable.Range(1, readOnlyGenericParameterCount)
+                .Select(i => $"                _readOnly{i}Storages = TypelessQuery.GetStorages<TReadOnly{i}>();"));
+            
             var writableSpanFields = string.Join("\n", Enumerable.Range(1, writableGenericParameterCount)
                 .Select(i => $"                private Span<TWritable{i}> _writable{i}Span = Span<TWritable{i}>.Empty;"));
 
@@ -67,7 +74,7 @@ public partial struct Writable<#= writableGenericParameters #>
 #>
     public partial struct ReadOnly<#= readOnlyGenericParameters #>
 <#= readOnlyGenericParametersWhere #>    {
-        public readonly struct Query(Deepslate.Ecs.Query query)
+        public struct Query(Deepslate.Ecs.Query query)
         {
             public readonly Deepslate.Ecs.Query TypelessQuery = query;
 
@@ -75,6 +82,12 @@ public partial struct Writable<#= writableGenericParameters #>
 <#= readOnlyStorages #>
             
             public Enumerator GetEnumerator() => new Enumerator(this);
+
+            public void PostInitialize()
+            {
+<#= writableStoragesInitialization #>
+<#= readOnlyStoragesInitialization #>
+            }
 
             public ref struct Enumerator
             {

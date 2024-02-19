@@ -1,5 +1,6 @@
 <#@ template language="C#" #>
 <#@ output extension="cs"#>
+<#@ assembly name="System.Core"#>
 <#@ import namespace="System.Linq" #>
 <#@ include file="../../Constants.ttinclude"#>
 namespace Deepslate.Ecs.GenericWrapper;
@@ -30,20 +31,20 @@ public partial struct Writable<#= writableGenericParameters #>
                 Enumerable.Range(1, readOnlyGenericParameterCount)
                     .Select(i => $"        where TReadOnly{i} : IComponentData"));
             
-            var writablePartResultOfRequireWritable = string.Join(", ",
+            var writablePartResultOfWithWritable = string.Join(", ",
                 Enumerable.Range(1, writableGenericParameterCount + 1)
                     .Select(i=> $"TWritable{i}"));
-            writablePartResultOfRequireWritable = $"<{writablePartResultOfRequireWritable}>";
+            writablePartResultOfWithWritable = $"<{writablePartResultOfWithWritable}>";
             
-            var readOnlyPartResultOfRequireWritable = string.Join(", ",
+            var readOnlyPartResultOfWithWritable = string.Join(", ",
                 Enumerable.Range(1, readOnlyGenericParameterCount)
                     .Select(i=> $"TReadOnly{i}"));
-            readOnlyPartResultOfRequireWritable = readOnlyGenericParameterCount > 0 ? $"<{readOnlyPartResultOfRequireWritable}>" : "";
+            readOnlyPartResultOfWithWritable = readOnlyGenericParameterCount > 0 ? $"<{readOnlyPartResultOfWithWritable}>" : "";
 
-            var readOnlyPartResultOfRequireReadOnly = string.Join(", ",
+            var readOnlyPartResultOfWithReadOnly = string.Join(", ",
                 Enumerable.Range(1, readOnlyGenericParameterCount + 1)
                     .Select(i=> $"TReadOnly{i}"));
-            readOnlyPartResultOfRequireReadOnly = $"<{readOnlyPartResultOfRequireReadOnly}>";
+            readOnlyPartResultOfWithReadOnly = $"<{readOnlyPartResultOfWithReadOnly}>";
             
             var nextWritableGenericParameter = $"TWritable{writableGenericParameterCount + 1}";
             var nextReadOnlyGenericParameter = $"TReadOnly{readOnlyGenericParameterCount + 1}";
@@ -56,14 +57,14 @@ public partial struct Writable<#= writableGenericParameters #>
 
             public QueryBuilder With<TComponent>()
                 where TComponent : IComponentData =>
-                new(TypelessBuilder.With(typeof(TComponent)));
+                new(TypelessBuilder.WithIncluded(typeof(TComponent)));
 
-            public QueryBuilder Without<TComponent>()
+            public QueryBuilder WithExcluded<TComponent>()
                 where TComponent : IComponentData =>
-                new(TypelessBuilder.Without(typeof(TComponent)));
+                new(TypelessBuilder.WithExcluded(typeof(TComponent)));
 
-            public QueryBuilder WithFilter(Func<Archetype, bool> predicate) =>
-                new(TypelessBuilder.WithFilter(predicate));
+            public QueryBuilder WithFilter(Predicate<Archetype> filter) =>
+                new(TypelessBuilder.WithFilter(filter));
 
             public QueryBuilder RequireInstantArchetypeCommand() =>
                 new(TypelessBuilder.RequireInstantArchetypeCommand());
@@ -72,18 +73,18 @@ public partial struct Writable<#= writableGenericParameters #>
             if (writableGenericParameterCount < MaxGenericParameters)
             {
 #>
-            public Writable<#= writablePartResultOfRequireWritable #>.ReadOnly<#= readOnlyPartResultOfRequireWritable #>.QueryBuilder RequireWritable<<#= nextWritableGenericParameter #>>()
+            public Writable<#= writablePartResultOfWithWritable #>.ReadOnly<#= readOnlyPartResultOfWithWritable #>.QueryBuilder WithWritable<<#= nextWritableGenericParameter #>>()
                 where <#= nextWritableGenericParameter #> : IComponentData =>
-                new(TypelessBuilder.RequireWritable(typeof(<#= nextWritableGenericParameter #>)));
+                new(TypelessBuilder.WithWritable(typeof(<#= nextWritableGenericParameter #>)));
 
 <#
             }
             if (readOnlyGenericParameterCount < MaxGenericParameters)
             {
 #>
-            public ReadOnly<#= readOnlyPartResultOfRequireReadOnly #>.QueryBuilder RequireReadOnly<<#= nextReadOnlyGenericParameter #>>()
+            public ReadOnly<#= readOnlyPartResultOfWithReadOnly #>.QueryBuilder WithReadOnly<<#= nextReadOnlyGenericParameter #>>()
                 where <#= nextReadOnlyGenericParameter #> : IComponentData =>
-                new(TypelessBuilder.RequireReadOnly(typeof(<#= nextReadOnlyGenericParameter #>)));
+                new(TypelessBuilder.WithReadOnly(typeof(<#= nextReadOnlyGenericParameter #>)));
 
 <#
             }

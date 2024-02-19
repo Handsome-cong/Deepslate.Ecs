@@ -1,5 +1,6 @@
 ﻿<#@ template language="C#" #>
 <#@ output extension="cs"#>
+<#@ assembly name="System.Core"#>
 <#@ import namespace="System.Linq" #>
 namespace Deepslate.Ecs.Extensions;
 
