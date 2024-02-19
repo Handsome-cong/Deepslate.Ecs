@@ -9,8 +9,8 @@ namespace Deepslate.Ecs;
 
 public readonly ref struct EntityCommand
 {
-    private readonly UncheckedCommandBuffer _commandBufferEndOfStage;
-    private readonly UncheckedCommandBuffer _commandBufferEndOfTick;
+    private readonly CommandBuffer _commandBufferEndOfStage;
+    private readonly CommandBuffer _commandBufferEndOfTick;
 
     private readonly IReadOnlyList<Archetype> _archetypes;
 
@@ -19,8 +19,8 @@ public readonly ref struct EntityCommand
 
     internal EntityCommand(
         TickSystem tickSystem,
-        UncheckedCommandBuffer commandBufferEndOfStage,
-        UncheckedCommandBuffer commandBufferEndOfTick)
+        CommandBuffer commandBufferEndOfStage,
+        CommandBuffer commandBufferEndOfTick)
     {
         TickSystem = tickSystem;
         _commandBufferEndOfStage = commandBufferEndOfStage;
@@ -34,7 +34,7 @@ public readonly ref struct EntityCommand
     /// The <paramref name="archetype"/> must be matched by any query that requires instant command.
     /// </para>
     /// <para>
-    /// This method is thread-safe.
+    /// This method is thread-safe, but may cause undefined behavior when the buffer is being executed.
     /// </para>
     /// </summary>
     /// <param name="buffer">
@@ -76,7 +76,7 @@ public readonly ref struct EntityCommand
     /// May fail if the <paramref name="archetype"/> is not matched by any query that requires instant command.
     /// </para>
     /// <para>
-    /// This method is thread-safe.
+    /// This method is thread-safe, but may cause undefined behavior when the buffer is being executed.
     /// </para>
     /// </summary>
     /// <param name="buffer">
@@ -127,7 +127,7 @@ public readonly ref struct EntityCommand
     /// any query that requires instant command.
     /// </para>
     /// <para>
-    /// This method is thread-safe.
+    /// This method is thread-safe, but may cause undefined behavior when the buffer is being executed.
     /// </para>
     /// </summary>
     /// <param name="buffer">
@@ -195,7 +195,7 @@ public readonly ref struct EntityCommand
     /// The entities in archetypes which are not matched by any query that requires instant command will be ignored.
     /// </para>
     /// <para>
-    /// This method is thread-safe.
+    /// This method is thread-safe, but may cause undefined behavior when the buffer is being executed.
     /// </para>
     /// </summary>
     /// <param name="buffer">
@@ -249,6 +249,43 @@ public readonly ref struct EntityCommand
         }
 
         return count;
+    }
+    
+    /// <summary>
+    /// <para>
+    /// Execute all commands in the buffer.
+    /// Destruction commands will be executed first, then creation commands.
+    /// </para>
+    /// <para>
+    /// Recording commands to a buffer that is being executed will cause undefined behavior.
+    /// </para>
+    /// </summary>
+    /// <seealso cref="ExecuteCommandBufferInParallelAsync"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ExecuteCommandBuffer(CommandBuffer buffer)
+    {
+        buffer.Execute();
+    }
+
+    
+    /// <summary>
+    /// <para>
+    /// Execute all commands in the buffer in parallel.
+    /// Destruction commands will be executed first, then creation commands.
+    /// Commands with different archetypes will be executed in parallel.
+    /// </para>
+    /// <para>
+    /// The tick system must be ensured to be completed after the returned task is completed.
+    /// </para>
+    /// <para>
+    /// Recording commands to a buffer that is being executed will cause undefined behavior.
+    /// </para>
+    /// </summary>
+    /// <seealso cref="ExecuteCommandBuffer"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Task ExecuteCommandBufferInParallelAsync(CommandBuffer buffer)
+    {
+        return buffer.ParallelExecuteAsync();
     }
 
     /// <summary>

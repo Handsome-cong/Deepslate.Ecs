@@ -13,8 +13,8 @@ public sealed partial class RecordCreateSystem : ITickSystemExecutor
     public RecordCreateSystem(TickSystemBuilder builder, int count)
     {
         InitializeQuery(builder);
-        builder.Build(this, out var tickSystem);
-        _commandBuffer = new CommandBuffer(tickSystem);
+        builder.Build(this, out _);
+        _commandBuffer = new CommandBuffer();
         _count = count;
     }
 

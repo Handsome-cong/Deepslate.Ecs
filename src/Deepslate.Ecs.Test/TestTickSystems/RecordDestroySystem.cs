@@ -12,8 +12,8 @@ public sealed partial class RecordDestroySystem : ITickSystemExecutor
     public RecordDestroySystem(TickSystemBuilder builder)
     {
         InitializeQuery(builder);
-        builder.Build(this, out var tickSystem);
-        _commandBuffer = new CommandBuffer(tickSystem);
+        builder.Build(this, out _);
+        _commandBuffer = new CommandBuffer();
     }
 
     public void Execute(EntityCommand command)

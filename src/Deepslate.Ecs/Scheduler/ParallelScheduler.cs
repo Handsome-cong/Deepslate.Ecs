@@ -14,8 +14,8 @@ internal sealed class ParallelScheduler
 
     private readonly SemaphoreSlim _semaphore = new(1, 1);
 
-    private readonly UncheckedCommandBuffer _commandBufferEndOfStage = new();
-    private readonly UncheckedCommandBuffer _commandBufferEndOfTick = new();
+    private readonly CommandBuffer _commandBufferEndOfStage = new();
+    private readonly CommandBuffer _commandBufferEndOfTick = new();
     
     internal World World { get; }
 
