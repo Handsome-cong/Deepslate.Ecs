@@ -16,7 +16,7 @@ public sealed class ReactSystemTests
             {
                 stageBuilder.AddTickSystem(tickSystemBuilder =>
                 {
-                    tickSystemBuilder.Build(new CreationSystem(tickSystemBuilder, 9));
+                    tickSystemBuilder.Build(new RecordCreateSystem(tickSystemBuilder, 9));
                 }).Build();
             }).Build();
 
@@ -42,7 +42,7 @@ public sealed class ReactSystemTests
                 stageBuilder
                     .AddTickSystem(tickSystemBuilder =>
                     {
-                        tickSystemBuilder.Build(new CreationSystem(tickSystemBuilder, 9));
+                        tickSystemBuilder.Build(new RecordCreateSystem(tickSystemBuilder, 9));
                     }).Build();
             }).Build();
 
@@ -66,12 +66,12 @@ public sealed class ReactSystemTests
                     .AddTickSystem(
                         tickSystemBuilder =>
                         {
-                            tickSystemBuilder.Build(new CreationSystem(tickSystemBuilder, creationCount));
+                            tickSystemBuilder.Build(new RecordCreateSystem(tickSystemBuilder, creationCount));
                         }, out var creationSystem)
                     .AddTickSystem(tickSystemBuilder =>
                     {
                         tickSystemBuilder.WithDependency(creationSystem!);
-                        tickSystemBuilder.Build(new DestructionSystem(tickSystemBuilder));
+                        tickSystemBuilder.Build(new RecordDestroySystem(tickSystemBuilder));
                     }).Build();
             }).Build();
 
@@ -92,7 +92,7 @@ public sealed class ReactSystemTests
                 stageBuilder
                     .AddTickSystem(tickSystemBuilder =>
                     {
-                        tickSystemBuilder.Build(new CreationSystem(tickSystemBuilder, creationCount));
+                        tickSystemBuilder.Build(new RecordCreateSystem(tickSystemBuilder, creationCount));
                     }).Build();
             });
         using (var world = worldBuilder.Build())
@@ -117,11 +117,11 @@ public sealed class ReactSystemTests
                 stageBuilder
                     .AddTickSystem(tickSystemBuilder =>
                     {
-                        tickSystemBuilder.Build(new CreationSystem(tickSystemBuilder, firstCreationCount));
+                        tickSystemBuilder.Build(new RecordCreateSystem(tickSystemBuilder, firstCreationCount));
                     })
                     .AddTickSystem(tickSystemBuilder =>
                     {
-                        tickSystemBuilder.Build(new CreationSystem(tickSystemBuilder, secondCreationCount));
+                        tickSystemBuilder.Build(new RecordCreateSystem(tickSystemBuilder, secondCreationCount));
                     }).Build();
             }).Build();
 

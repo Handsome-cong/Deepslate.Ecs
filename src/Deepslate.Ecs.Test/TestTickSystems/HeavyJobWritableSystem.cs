@@ -11,11 +11,11 @@ public sealed class HeavyJobWritableSystem<TComponent> : ITickSystemExecutor, IT
     {
         builder.AddQuery()
             .AsGeneric()
-            .RequireWritable<TComponent>()
+            .WithWritable<TComponent>()
             .Build(out _);
     }
     
-    public void Execute(TickSystemCommand command)
+    public void Execute(EntityCommand command)
     {
         var sw = new Stopwatch();
         sw.Start();
@@ -34,12 +34,12 @@ public sealed class HeavyJobWritableSystem<TComponent1, TComponent2> : ITickSyst
     {
         builder.AddQuery()
             .AsGeneric()
-            .RequireWritable<TComponent1>()
-            .RequireWritable<TComponent2>()
+            .WithWritable<TComponent1>()
+            .WithWritable<TComponent2>()
             .Build(out _);
     }
     
-    public void Execute(TickSystemCommand command)
+    public void Execute(EntityCommand command)
     {
         var sw = new Stopwatch();
         sw.Start();

@@ -60,8 +60,8 @@ public sealed class SchedulerTests(ITestOutputHelper outputHelper)
                     .AddTickSystem(tickSystemBuilder =>
                     {
                         tickSystemBuilder.AddQuery()
-                            .RequireReadOnly<Position>()
-                            .RequireWritable<Velocity>()
+                            .WithReadOnly<Position>()
+                            .WithWritable<Velocity>()
                             .Build(out _)
                             .Build(new HeavyJobSystem(), out var tickSystem);
                         systemsWithTime.Add(tickSystem);

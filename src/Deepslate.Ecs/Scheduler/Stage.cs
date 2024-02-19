@@ -2,35 +2,24 @@
 
 public sealed class Stage
 {
-    internal DependencyGraph Graph { get; }
-    internal IReadOnlyList<DependencyGraphNode> StartupNodes { get; }
+    private readonly IReadOnlyList<TickSystem> _tickSystems;
 
-    internal Stage(DependencyGraph graph)
+    internal DependencyGraph Graph { get; private set; } = default!;
+
+    internal ParallelScheduler Scheduler { get; private set; } = default!;
+
+    internal Stage(IReadOnlyList<TickSystem> tickSystems)
     {
-        Graph = graph;
-        StartupNodes = CollectStartupNodes(graph);
+        _tickSystems = tickSystems;
     }
 
-    private static List<DependencyGraphNode> CollectStartupNodes(DependencyGraph graph)
+    internal void PostInitialize(World world)
     {
-        var startupNodes = new List<DependencyGraphNode>();
-        var nodes = graph.Nodes;
-
-        for (var i = 0; i < nodes.Count; i++)
+        Scheduler = world.Scheduler;
+        foreach (var tickSystem in _tickSystems)
         {
-            var node = nodes[i];
-            if (node.OtherNodesThisDependsOn.Count > 0)
-            {
-                continue;
-            }
-
-            if (startupNodes.Any(startupNode => startupNode.OtherNodesConflictWithThis.Contains(node)))
-            {
-                continue;
-            }
-            startupNodes.Add(node);
+            tickSystem.PostInitialize(world, this);
         }
-
-        return startupNodes;
+        Graph = new DependencyGraph(_tickSystems, world.Archetypes.Count, world.ComponentTypes.Count);
     }
 }

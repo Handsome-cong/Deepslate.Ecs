@@ -16,10 +16,18 @@ namespace Deepslate.Ecs;
 /// the number of <see cref="Archetype"/> per <see cref="World"/> is limited to 2^16 (65536),
 /// and the number of <see cref="Entity"/> per <see cref="Archetype"/> is limited to 2^32 (4294967296).
 /// </para>
+/// <para>
+/// Don't use <see langword="default"/> as a "null" entity, use <see cref="Entity.Dead"/> instead.
+/// </para>
 /// </summary>
 [StructLayout(LayoutKind.Explicit, Size = sizeof(ulong))]
 public readonly struct Entity : IEquatable<Entity>, IEqualityOperators<Entity, Entity, bool>
 {
+    /// <summary>
+    /// The entity that represents nothing and will never exist in any <see cref="World"/>.
+    /// </summary>
+    public static readonly Entity Dead = new(ulong.MaxValue);
+    
     // Technically, 32-bit, which means 4 billion entities, is enough for most applications.
     // However, 64-bit is much more easier to process, especially there are three parts in an entity.
 
@@ -65,13 +73,4 @@ public readonly struct Entity : IEquatable<Entity>, IEqualityOperators<Entity, E
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override string ToString() => Value.ToString();
-}
-
-internal record struct ComponentizedEntity(Entity Entity) : IComponentData
-{
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator Entity(ComponentizedEntity componentizedEntity) => componentizedEntity.Entity;
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator ComponentizedEntity(Entity entity) => new(entity);
 }

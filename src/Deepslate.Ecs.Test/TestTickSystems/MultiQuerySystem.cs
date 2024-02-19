@@ -4,11 +4,11 @@ namespace Deepslate.Ecs.Test.TestTickSystems;
 
 public sealed partial class MultiQuerySystem : ITickSystemExecutor
 {
-    [RequireWritable<Velocity>] [RequireReadOnly<Position>]
+    [WithWritable<Velocity>] [WithReadOnly<Position>]
     private Query _query1;
 
     [RequireInstantCommand]
-    [RequireWritable<Name>]
+    [WithWritable<Name>]
     [AsGenericQuery(useProperty: true, memberName: "Query2", modifier: GeneratedGenericQueryAccessModifier.Public)]
     private Query _query2;
 
@@ -17,7 +17,7 @@ public sealed partial class MultiQuerySystem : ITickSystemExecutor
         InitializeQuery(builder);
     }
 
-    public void Execute(TickSystemCommand command)
+    public void Execute(EntityCommand command)
     {
     }
 }

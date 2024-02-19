@@ -24,9 +24,7 @@ public sealed class StageBuilder
             configuredStage = Result;
             return WorldBuilder;
         }
-        
-        var graph = new DependencyGraph(this);
-        configuredStage = new Stage(graph);
+        configuredStage = new Stage(_tickSystems);
         Result = configuredStage;
         WorldBuilder.RegisterStage(index, configuredStage);
         return WorldBuilder;

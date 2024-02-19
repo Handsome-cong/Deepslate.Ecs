@@ -3,15 +3,15 @@ using Deepslate.Ecs.Util;
 
 namespace Deepslate.Ecs;
 
-public partial class QueryBuilder
+public class QueryBuilder
 {
-    private List<Type> RequiredWritableComponentTypes { get; } = [];
-    private List<Type> RequiredReadOnlyComponentTypes { get; } = [];
-    private List<Type> IncludedComponentTypes { get; } = [];
-    private List<Type> ExcludedComponentTypes { get; } = [];
+    private readonly List<Type> _requiredWritableComponentTypes  = [];
+    private readonly List<Type> _requiredReadOnlyComponentTypes  = [];
+    private readonly List<Type> _includedComponentTypes = [];
+    private readonly List<Type> _excludedComponentTypes  = [];
 
     private Predicate<Archetype>? _filter; 
-    private bool _requireInstantArchetypeCommand = false;
+    private bool _requireInstantArchetypeCommand;
 
     public Query? Result { get; private set; }
     public TickSystemBuilder TickSystemBuilder { get; }
@@ -21,31 +21,31 @@ public partial class QueryBuilder
         TickSystemBuilder = tickSystemBuilder;
     }
 
-    public QueryBuilder RequireWritable(Type type)
+    public QueryBuilder WithWritable(Type type)
     {
-        With(type);
-        RequiredWritableComponentTypes.Add(type);
+        WithIncluded(type);
+        _requiredWritableComponentTypes.Add(type);
         return this;
     }
 
-    public QueryBuilder RequireReadOnly(Type type)
+    public QueryBuilder WithReadOnly(Type type)
     {
-        With(type);
-        RequiredReadOnlyComponentTypes.Add(type);
+        WithIncluded(type);
+        _requiredReadOnlyComponentTypes.Add(type);
         return this;
     }
 
-    public QueryBuilder With(Type type)
+    public QueryBuilder WithIncluded(Type type)
     {
         Guard.IsComponent(type);
-        IncludedComponentTypes.Add(type);
+        _includedComponentTypes.Add(type);
         return this;
     }
 
-    public QueryBuilder Without(Type type)
+    public QueryBuilder WithExcluded(Type type)
     {
         Guard.IsComponent(type);
-        ExcludedComponentTypes.Add(type);
+        _excludedComponentTypes.Add(type);
         return this;
     }
 
@@ -63,7 +63,35 @@ public partial class QueryBuilder
 
     public Writable.ReadOnly.QueryBuilder AsGeneric() => new(this);
 
-    public static implicit operator Writable.ReadOnly.QueryBuilder(QueryBuilder self) => new(self);
+    
+    /// <summary>
+    /// Call this to complete the query configuration and register it to the system.
+    /// As long as this method is called, the operations on this builder will not affect the query anymore.
+    /// </summary>
+    /// <param name="configuredQuery">
+    /// The query that has been configured and registered.
+    /// </param>
+    /// <seealso cref="Result"/>
+    public TickSystemBuilder Build(out Query configuredQuery)
+    {
+        if (Result is not null)
+        {
+            configuredQuery = Result;
+        }
+
+        var query = new Query(
+            _requiredWritableComponentTypes,
+            _requiredReadOnlyComponentTypes,
+            _includedComponentTypes,
+            _excludedComponentTypes,
+            _filter,
+            _requireInstantArchetypeCommand);
+
+        Result = query;
+        configuredQuery = query;
+        TickSystemBuilder.RegisterQuery(query);
+        return TickSystemBuilder;
+    }
 }
 
 /// <summary>
@@ -71,18 +99,15 @@ public partial class QueryBuilder
 /// </summary>
 public static class QueryBuilderExtensions
 {
-    public static QueryBuilder RequireWritable<TWritable>(this QueryBuilder self)
-        where TWritable : IComponentData => self.RequireWritable(typeof(TWritable));
+    public static QueryBuilder WithWritable<TWritable>(this QueryBuilder self)
+        where TWritable : IComponentData => self.WithWritable(typeof(TWritable));
 
-    public static QueryBuilder RequireReadOnly<TWritable>(this QueryBuilder self)
-        where TWritable : IComponentData => self.RequireReadOnly(typeof(TWritable));
+    public static QueryBuilder WithReadOnly<TWritable>(this QueryBuilder self)
+        where TWritable : IComponentData => self.WithReadOnly(typeof(TWritable));
 
-    public static QueryBuilder With<TWritable>(this QueryBuilder self)
-        where TWritable : IComponentData => self.With(typeof(TWritable));
+    public static QueryBuilder WithIncluded<TWritable>(this QueryBuilder self)
+        where TWritable : IComponentData => self.WithIncluded(typeof(TWritable));
 
-    public static QueryBuilder Without<TWritable>(this QueryBuilder self)
-        where TWritable : IComponentData => self.Without(typeof(TWritable));
-
-    public static QueryBuilder WithFilter(this QueryBuilder self, Func<Archetype, bool> predicate)
-        => self.WithFilter(predicate);
+    public static QueryBuilder WithExcluded<TWritable>(this QueryBuilder self)
+        where TWritable : IComponentData => self.WithExcluded(typeof(TWritable));
 }

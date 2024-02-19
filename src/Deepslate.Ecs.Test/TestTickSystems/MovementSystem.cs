@@ -2,19 +2,19 @@
 
 namespace Deepslate.Ecs.Test.TestTickSystems;
 
-public sealed class MovementSystem : ITickSystemExecutor
+public sealed partial class MovementSystem : ITickSystemExecutor
 {
-    private readonly Writable<Position>.ReadOnly.Query _positionQuery;
+    private Writable<Position>.ReadOnly.Query _positionQuery;
 
     public MovementSystem(TickSystemBuilder builder)
     {
         builder.AddQuery()
             .AsGeneric()
-            .RequireWritable<Position>()
+            .WithWritable<Position>()
             .Build(out _positionQuery);
     }
     
-    public void Execute(TickSystemCommand command)
+    public void Execute(EntityCommand command)
     {
         foreach (var bundle in _positionQuery)
         {

@@ -10,14 +10,11 @@ public sealed partial class WorldBuilder
     private readonly HashSet<Type> _managedComponentTypes = [];
     private readonly HashSet<Type> _unmanagedComponentTypes = [];
     private readonly HashSet<Type> _componentTypes = [];
-    private readonly Dictionary<Type, int> _componentTypeIds = [];
     private readonly Dictionary<Type, List<int>> _componentTypeToArchetypeIds = [];
 
+    private readonly StorageArrayFactory _storageArrayFactory = new();
+    
     internal readonly ComponentStorageFactory ComponentStorageFactory = new();
-    internal readonly StorageArrayFactory StorageArrayFactory = new();
-
-    internal IReadOnlyDictionary<Type, List<int>> ComponentTypeToArchetypeIds => _componentTypeToArchetypeIds;
-    internal IReadOnlyDictionary<Type, int> ComponentTypeIds => _componentTypeIds;
 
     public IReadOnlySet<Type> ComponentTypes => _componentTypes;
     public IReadOnlySet<Type> ManagedComponentTypes => _managedComponentTypes;
@@ -33,7 +30,6 @@ public sealed partial class WorldBuilder
             return this;
         }
 
-        _componentTypeIds.Add(componentType, _componentTypeIds.Count);
         _managedComponentTypes.Add(componentType);
         RegisterManagedFactories(componentType);
         return this;
@@ -48,7 +44,6 @@ public sealed partial class WorldBuilder
             return this;
         }
 
-        _componentTypeIds.Add(componentType, _componentTypeIds.Count);
         _managedComponentTypes.Add(componentType);
         RegisterManagedFactories<TComponent>();
         return this;
@@ -63,7 +58,6 @@ public sealed partial class WorldBuilder
             return this;
         }
 
-        _componentTypeIds.Add(componentType, _componentTypeIds.Count);
         _unmanagedComponentTypes.Add(componentType);
         RegisterUnmanagedFactories(componentType);
         return this;
@@ -78,7 +72,6 @@ public sealed partial class WorldBuilder
             return this;
         }
 
-        _componentTypeIds.Add(componentType, _componentTypeIds.Count);
         _unmanagedComponentTypes.Add(componentType);
         RegisterUnmanagedFactories<TComponent>();
         return this;
@@ -93,7 +86,6 @@ public sealed partial class WorldBuilder
             return this;
         }
 
-        _componentTypeIds.Add(componentType, _componentTypeIds.Count);
         if (UnmanagedHelper.IsUnmanaged(componentType))
         {
             _unmanagedComponentTypes.Add(componentType);
@@ -117,7 +109,6 @@ public sealed partial class WorldBuilder
             return this;
         }
 
-        _componentTypeIds.Add(componentType, _componentTypeIds.Count);
         if (UnmanagedHelper.IsUnmanaged<TComponent>())
         {
             _unmanagedComponentTypes.Add(componentType);
@@ -137,10 +128,10 @@ public sealed partial class WorldBuilder
 
     internal bool TryRegisterArchetype(Archetype archetype, out Archetype registeredArchetype)
     {
-        foreach (var existingArchetype in _archetypes)
+        foreach (var existentArchetype in _archetypes)
         {
-            if (existingArchetype.ComponentTypesHashCode != archetype.ComponentTypesHashCode ||
-                existingArchetype.ComponentTypes.Count != archetype.ComponentTypes.Count)
+            if (existentArchetype.ComponentTypesHashCode != archetype.ComponentTypesHashCode ||
+                existentArchetype.ComponentTypes.Count != archetype.ComponentTypes.Count)
             {
                 continue;
             }
@@ -148,7 +139,7 @@ public sealed partial class WorldBuilder
             var sameTypes = true;
             for (var i = 0; i < archetype.ComponentTypes.Count; i++)
             {
-                sameTypes &= existingArchetype.ComponentTypes[i] == archetype.ComponentTypes[i];
+                sameTypes &= existentArchetype.ComponentTypes[i] == archetype.ComponentTypes[i];
             }
 
             if (!sameTypes)
@@ -156,7 +147,7 @@ public sealed partial class WorldBuilder
                 continue;
             }
 
-            registeredArchetype = existingArchetype;
+            registeredArchetype = existentArchetype;
             return false;
         }
 
@@ -182,26 +173,26 @@ public sealed partial class WorldBuilder
     private void RegisterManagedFactories<TComponent>()
         where TComponent : IComponentData
     {
-        StorageArrayFactory.RegisterFactory<TComponent>();
+        _storageArrayFactory.RegisterFactory<TComponent>();
         ComponentStorageFactory.RegisterManagedFactory<TComponent>();
     }
 
     private void RegisterUnmanagedFactories<TComponent>()
         where TComponent : unmanaged, IComponentData
     {
-        StorageArrayFactory.RegisterFactory<TComponent>();
+        _storageArrayFactory.RegisterFactory<TComponent>();
         ComponentStorageFactory.RegisterUnmanagedFactory<TComponent>();
     }
 
     private void RegisterManagedFactories(Type componentType)
     {
-        StorageArrayFactory.RegisterFactory(componentType);
+        _storageArrayFactory.RegisterFactory(componentType);
         ComponentStorageFactory.RegisterManagedFactory(componentType);
     }
 
     private void RegisterUnmanagedFactories(Type componentType)
     {
-        StorageArrayFactory.RegisterFactory(componentType);
+        _storageArrayFactory.RegisterFactory(componentType);
         ComponentStorageFactory.RegisterUnmanagedFactory(componentType);
     }
 }

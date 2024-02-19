@@ -11,11 +11,11 @@ public sealed class HeavyJobReadOnlySystem<TComponent> : ITickSystemExecutor, IT
     {
         builder.AddQuery()
             .AsGeneric()
-            .RequireReadOnly<TComponent>()
+            .WithReadOnly<TComponent>()
             .Build(out _);
     }
 
-    public void Execute(TickSystemCommand command)
+    public void Execute(EntityCommand command)
     {
         var sw = new Stopwatch();
         sw.Start();

@@ -4,8 +4,7 @@ namespace Deepslate.Ecs;
 
 internal sealed class ParallelScheduler
 {
-    private readonly Stage[] _stages;
-    private readonly Archetype[] _archetypes;
+    private readonly IReadOnlyList<Stage> _stages;
 
     private readonly HashSet<DependencyGraphNode> _runningNodes = [];
     private readonly HashSet<DependencyGraphNode> _waitingNodes = [];
@@ -17,11 +16,13 @@ internal sealed class ParallelScheduler
 
     private readonly UncheckedCommandBuffer _commandBufferEndOfStage = new();
     private readonly UncheckedCommandBuffer _commandBufferEndOfTick = new();
+    
+    internal World World { get; }
 
-    internal ParallelScheduler(IEnumerable<Stage> stages, IEnumerable<Archetype> archetypes)
+    internal ParallelScheduler(World world)
     {
-        _stages = stages.ToArray();
-        _archetypes = archetypes.ToArray();
+        _stages = world.Stages;
+        World = world;
     }
 
     public void Tick()
@@ -90,7 +91,7 @@ internal sealed class ParallelScheduler
         tickSystem.ExecutionTask = new Task(() =>
         {
             tickSystem.Executor.Execute(
-                new TickSystemCommand(tickSystem, _commandBufferEndOfStage,_commandBufferEndOfTick));
+                new EntityCommand(tickSystem, _commandBufferEndOfStage,_commandBufferEndOfTick));
         });
         tickSystem.ExecutionTask.Start();
         await tickSystem.ExecutionTask;

@@ -24,7 +24,7 @@ public sealed partial class WorldBuilder
         {
             return Result;
         }
-        Result = new World(_componentTypes, _archetypes, _stages);
+        Result = new World(_componentTypes, _archetypes, _stages, _storageArrayFactory);
         return Result;
     }
 }

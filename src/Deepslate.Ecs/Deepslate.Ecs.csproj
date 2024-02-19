@@ -56,7 +56,7 @@
         <DependentUpon>QueryAttribute.Generic.g.tt</DependentUpon>
       </Compile>
       <Compile Update="Query\GenericWrapper\Query.Generic.g.cs">
-        <DependentUpon>Query2.Generic.g.tt</DependentUpon>
+        <DependentUpon>Query.Generic.g.tt</DependentUpon>
         <AutoGen>True</AutoGen>
         <DesignTime>True</DesignTime>
       </Compile>
@@ -64,6 +64,10 @@
 
     <ItemGroup>
       <Folder Include="Archetype\GenericWrapper\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
     </ItemGroup>
 
 </Project>

@@ -2,7 +2,7 @@
 
 public sealed class EmptySystem : ITickSystemExecutor
 {
-    public void Execute(TickSystemCommand command)
+    public void Execute(EntityCommand command)
     {
     }
 }

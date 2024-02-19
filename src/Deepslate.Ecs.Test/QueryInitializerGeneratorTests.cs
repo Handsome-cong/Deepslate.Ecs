@@ -23,11 +23,11 @@ public sealed class QueryInitializerGeneratorTests(ITestOutputHelper outputHelpe
 
                                                   public sealed partial class MultiQuerySystem : ITickSystemExecutor
                                                   {
-                                                      [RequireWritable<Velocity>] [RequireReadOnly<Position>]
+                                                      [WithWritable<Velocity>] [WithReadOnly<Position>]
                                                       private Query _query1;
                                                   
                                                       [RequireInstantCommand]
-                                                      [RequireWritable<Name>]
+                                                      [WithWritable<Name>]
                                                       [AsGenericQuery(useProperty: true, memberName: "Query2", modifier: GeneratedGenericQueryAccessModifier.Public)]
                                                       private Query _query2;
                                                   
@@ -36,7 +36,7 @@ public sealed class QueryInitializerGeneratorTests(ITestOutputHelper outputHelpe
                                                           InitializeQuery(builder);
                                                       }
                                                   
-                                                      public void Execute(TickSystemCommand command)
+                                                      public void Execute(EntityCommand command)
                                                       {
                                                           throw new NotImplementedException();
                                                       }
@@ -151,32 +151,32 @@ public sealed class QueryInitializerGeneratorTests(ITestOutputHelper outputHelpe
                 }
 
                 var genericTypeDefinition = type.GetGenericTypeDefinition();
-                if (genericTypeDefinition == typeof(RequireReadOnlyAttribute<>))
+                if (genericTypeDefinition == typeof(WithReadOnlyAttribute<>))
                 {
                     foreach (var componentType in type.GetGenericArguments())
                     {
-                        queryBuilder.RequireReadOnly(componentType);
+                        queryBuilder.WithReadOnly(componentType);
                     }
                 }
-                else if (genericTypeDefinition == typeof(RequireWritableAttribute<>))
+                else if (genericTypeDefinition == typeof(WithWritableAttribute<>))
                 {
                     foreach (var componentType in type.GetGenericArguments())
                     {
-                        queryBuilder.RequireWritable(componentType);
+                        queryBuilder.WithWritable(componentType);
                     }
                 }
-                else if (genericTypeDefinition == typeof(WithAttribute<>))
+                else if (genericTypeDefinition == typeof(WithIncludedAttribute<>))
                 {
                     foreach (var componentType in type.GetGenericArguments())
                     {
-                        queryBuilder.With(componentType);
+                        queryBuilder.WithIncluded(componentType);
                     }
                 }
-                else if (genericTypeDefinition == typeof(WithoutAttribute<>))
+                else if (genericTypeDefinition == typeof(WithExcludedAttribute<>))
                 {
                     foreach (var componentType in type.GetGenericArguments())
                     {
-                        queryBuilder.Without(componentType);
+                        queryBuilder.WithExcluded(componentType);
                     }
                 }
             }

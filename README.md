@@ -6,9 +6,7 @@ It is designed to be fast, flexible and easy to use.
 ## Roadmap
 - [x] `Entity` struct with just 64 bits representing your entities
 - [x] `IComponentData` interface for tagging components
-- [ ] System Support
-  - [x] `ITickSystem` interface for tagging systems that execute per tick
-  - [ ] Source generator for easy `TickSystem` creation
+- [X] System Support
 - [X] `Query` for iterating over entities with specific components
   - [x] Generic `QueryBuilder` for strongly typed query configuration
   - [x] Generic `Query` for explicit query requirements 
@@ -23,7 +21,9 @@ It is designed to be fast, flexible and easy to use.
 - [X] `Scheduler` for running systems in parallel
   - [x] `Stage` for grouping systems
   - [x] Automatic parallelization of systems with no conflicting queries
-  - [x] Execution of `ArchetypeCommand`
+  - [x] Execution of deferred command created by `EntityCommand`
+- [x] `EntityCommand` for creating, destroying and modifying entities and components in tick
+- [x] `GlobalCommand` for creating, destroying and modifying entities and components out of tick
 
 ## Api Conventions
 - `With` prefix for methods that add or overwrite something, if the arguments of multiple calls are the same or partially the same.

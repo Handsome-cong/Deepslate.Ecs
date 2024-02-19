@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -11,13 +12,15 @@ namespace Deepslate.Ecs.SourceGenerators;
 [Generator]
 public sealed class QueryInitializerGenerator : IIncrementalGenerator
 {
-    private const string RequireWritableAttribute = "RequireWritable";
-    private const string RequireReadOnlyAttribute = "RequireReadOnly";
-    private const string WithAttribute = "With";
-    private const string WithoutAttribute = "Without";
+    private const string WithWritableAttribute = "WithWritable";
+    private const string WithReadOnlyAttribute = "WithReadOnly";
+    private const string WithAttribute = "WithIncluded";
+    private const string WithExcludedAttribute = "WithExcluded";
     private const string WithFilterAttribute = "WithFilter";
     private const string RequireInstantCommandAttribute = "RequireInstantCommand";
     private const string AsGenericQueryAttribute = "AsGenericQuery";
+
+    private static readonly Regex GenericQueryQualifier = new(@"Writable(?:<.+>)?\.ReadOnly(?:<.+>)?\.Query");
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -25,7 +28,7 @@ public sealed class QueryInitializerGenerator : IIncrementalGenerator
             .CreateSyntaxProvider(
                 (s, _) => s is ClassDeclarationSyntax,
                 (ctx, _) => GetTickSystemsForGeneration(ctx))
-            .Where(tickSystem => tickSystem.QueryMembers.Count > 0);
+            .Where(tickSystem => tickSystem.NeedsGeneration);
 
         context.RegisterSourceOutput(
             context.CompilationProvider.Combine(provider.Collect()),
@@ -75,6 +78,10 @@ public sealed class QueryInitializerGenerator : IIncrementalGenerator
 
                             result.QueryMembers.Add(queryMember);
                         }
+                        else if (GenericQueryQualifier.IsMatch(fieldDeclarationSyntax.Declaration.Type.ToString()))
+                        {
+                            result.GenericQueryMembers.Add(new GenericQueryMember(variableName));
+                        }
                     }
 
                     break;
@@ -89,6 +96,11 @@ public sealed class QueryInitializerGenerator : IIncrementalGenerator
                         if (string.IsNullOrWhiteSpace(queryMember.AccessModifier))
                         {
                             queryMember.AccessModifier = GetAccessModifier(propertyDeclarationSyntax.Modifiers);
+                        }
+                        else if (GenericQueryQualifier.IsMatch(propertyDeclarationSyntax.Type.ToString()))
+                        {
+                            result.GenericQueryMembers.Add(
+                                new GenericQueryMember(propertyDeclarationSyntax.Identifier.Text));
                         }
 
                         result.QueryMembers.Add(queryMember);
@@ -141,11 +153,11 @@ public sealed class QueryInitializerGenerator : IIncrementalGenerator
             foreach (var attributeSyntax in attributeListSyntax.Attributes)
             {
                 var attributeName = attributeSyntax.Name.ToString();
-                if (attributeName.Contains(RequireReadOnlyAttribute))
+                if (attributeName.Contains(WithReadOnlyAttribute))
                 {
                     FillComponentTypes(queryMember.ReadOnly, attributeSyntax);
                 }
-                else if (attributeName.Contains(RequireWritableAttribute))
+                else if (attributeName.Contains(WithWritableAttribute))
                 {
                     FillComponentTypes(queryMember.Writable, attributeSyntax);
                 }
@@ -160,11 +172,11 @@ public sealed class QueryInitializerGenerator : IIncrementalGenerator
                 }
                 else if (attributeName.Contains(WithAttribute))
                 {
-                    FillComponentTypes(queryMember.With, attributeSyntax);
+                    FillComponentTypes(queryMember.WithIncluded, attributeSyntax);
                 }
-                else if (attributeName.Contains(WithoutAttribute))
+                else if (attributeName.Contains(WithExcludedAttribute))
                 {
-                    FillComponentTypes(queryMember.Without, attributeSyntax);
+                    FillComponentTypes(queryMember.WithExcluded, attributeSyntax);
                 }
                 else if (attributeName.Contains(RequireInstantCommandAttribute))
                 {
@@ -269,16 +281,45 @@ public sealed class QueryInitializerGenerator : IIncrementalGenerator
             var attributeStringBuilder = new StringBuilder();
             var methodStringBuilder = new StringBuilder();
             var genericQueryFields = new StringBuilder();
+            var genericQueryInitialize = new StringBuilder();
 
             foreach (var queryMember in tickSystem.QueryMembers)
             {
                 GenerateGenericQueryField(genericQueryFields, queryMember);
                 GenerateNotNullAttribute(attributeStringBuilder, queryMember);
                 GenerateQueryBuilder(methodStringBuilder, queryMember);
+                if (queryMember.AsGenericQuery)
+                {
+                    GenerateGenericQueryInitialize(genericQueryInitialize, queryMember.GenericName);
+                }
+            }
+
+            foreach (var genericQueryMember in tickSystem.GenericQueryMembers)
+            {
+                GenerateGenericQueryInitialize(genericQueryInitialize, genericQueryMember.Name);
             }
 
             var genericNameSpace =
                 genericQueryFields.Length > 0 ? "using Deepslate.Ecs.GenericWrapper;\n" : string.Empty;
+
+            var initializeQuery = methodStringBuilder.Length == 0
+                ? string.Empty
+                : $$"""
+                    {{genericQueryFields}}
+                    {{attributeStringBuilder}}
+                        private void InitializeQuery(TickSystemBuilder builder)
+                        {
+                            Query configuredQuery;{{methodStringBuilder}}
+                        }
+                    """;
+
+            var postInitialize = genericQueryInitialize.Length == 0
+                ? string.Empty
+                : $$"""
+                        void ITickSystemExecutor.PostInitialize(World world)
+                        {{{genericQueryInitialize}}
+                        }
+                    """;
 
             var code = $$"""
                          using System.Diagnostics.CodeAnalysis;
@@ -286,12 +327,9 @@ public sealed class QueryInitializerGenerator : IIncrementalGenerator
                          namespace {{namespaceName}};
 
                          partial class {{className}}
-                         {{{genericQueryFields}}
-                         {{attributeStringBuilder}}
-                             private void InitializeQuery(TickSystemBuilder builder)
-                             {
-                                 Query configuredQuery;{{methodStringBuilder}}
-                             }
+                         {{{initializeQuery}}
+
+                         {{postInitialize}}
                          }
                          """;
 
@@ -339,28 +377,30 @@ public sealed class QueryInitializerGenerator : IIncrementalGenerator
         QueryMember queryMember)
     {
         // Maybe we should add an analyzer to check if the attribute is used correctly
+        // * WithWritable, WithReadOnly, WithIncluded, WithExcluded should not be used with the same component type
+        // * WithFilter should be used with a valid predicate method name
         currentStringBuilder.Append("\n        builder.AddQuery()\n");
 
         foreach (var writableComponent in queryMember.Writable)
         {
-            currentStringBuilder.Append($"            .RequireWritable<{writableComponent}>()\n");
+            currentStringBuilder.Append($"            .WithWritable<{writableComponent}>()\n");
         }
 
         foreach (var readOnlyComponent in queryMember.ReadOnly.Where(readOnlyComponent =>
                      !queryMember.Writable.Contains(readOnlyComponent)))
         {
-            currentStringBuilder.Append($"            .RequireReadOnly<{readOnlyComponent}>()\n");
+            currentStringBuilder.Append($"            .WithReadOnly<{readOnlyComponent}>()\n");
         }
 
-        foreach (var withComponent in queryMember.With.Where(withComponent =>
+        foreach (var withIncludedComponent in queryMember.WithIncluded.Where(withComponent =>
                      !queryMember.ReadOnly.Contains(withComponent) && !queryMember.Writable.Contains(withComponent)))
         {
-            currentStringBuilder.Append($"            .With<{withComponent}>()\n");
+            currentStringBuilder.Append($"            .WithIncluded<{withIncludedComponent}>()\n");
         }
 
-        foreach (var withoutComponent in queryMember.Without)
+        foreach (var withExcludedComponent in queryMember.WithExcluded)
         {
-            currentStringBuilder.Append($"            .Without<{withoutComponent}>()\n");
+            currentStringBuilder.Append($"            .WithExcluded<{withExcludedComponent}>()\n");
         }
 
         if (!string.IsNullOrWhiteSpace(queryMember.Predicate))
@@ -374,20 +414,27 @@ public sealed class QueryInitializerGenerator : IIncrementalGenerator
         }
 
         currentStringBuilder.Append("            .Build(out configuredQuery);\n");
-        if (queryMember.AsGenericQuery)
-        {
-            currentStringBuilder.Append($"        {queryMember.GenericName} = new(configuredQuery);\n");
-        }
 
         currentStringBuilder.Append($"        {queryMember.Name} = configuredQuery;");
+        if (queryMember.AsGenericQuery)
+        {
+            currentStringBuilder.Append($"        {queryMember.GenericName} = new({queryMember.Name});\n");
+        }
+    }
+
+    private static void GenerateGenericQueryInitialize(
+        StringBuilder currentStringBuilder,
+        string memberNames)
+    {
+        currentStringBuilder.Append($"\n        {memberNames}.PostInitialize();");
     }
 
     private sealed class QueryMember(string name)
     {
         public readonly HashSet<string> ReadOnly = [];
         public readonly HashSet<string> Writable = [];
-        public readonly HashSet<string> With = [];
-        public readonly HashSet<string> Without = [];
+        public readonly HashSet<string> WithIncluded = [];
+        public readonly HashSet<string> WithExcluded = [];
         public string Predicate = string.Empty;
         public bool InstantCommand;
 
@@ -404,17 +451,25 @@ public sealed class QueryInitializerGenerator : IIncrementalGenerator
             var result = false;
             result |= ReadOnly.Count > 0;
             result |= Writable.Count > 0;
-            result |= With.Count > 0;
-            result |= Without.Count > 0;
+            result |= WithIncluded.Count > 0;
+            result |= WithExcluded.Count > 0;
             result |= !string.IsNullOrWhiteSpace(Predicate);
             result |= InstantCommand;
             return result;
         }
     }
 
+    private sealed class GenericQueryMember(string name)
+    {
+        public readonly string Name = name;
+    }
+
     private sealed class TickSystemExecutorClass(ClassDeclarationSyntax classDeclarationSyntax)
     {
         public readonly List<QueryMember> QueryMembers = [];
+        public readonly List<GenericQueryMember> GenericQueryMembers = [];
         public readonly ClassDeclarationSyntax ClassDeclarationSyntax = classDeclarationSyntax;
+
+        public bool NeedsGeneration => QueryMembers.Count > 0 || GenericQueryMembers.Count > 0;
     }
 }

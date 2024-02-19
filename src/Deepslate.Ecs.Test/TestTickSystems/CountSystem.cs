@@ -8,10 +8,10 @@ public sealed class CountSystem : ITickSystemExecutor
     {
         builder.AddQuery()
             .AsGeneric()
-            .RequireReadOnly<Position>()
+            .WithReadOnly<Position>()
             .Build(out _);
     }
-    public void Execute(TickSystemCommand command)
+    public void Execute(EntityCommand command)
     {
         ExecutionCount++;
     }

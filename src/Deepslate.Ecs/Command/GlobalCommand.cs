@@ -1,10 +1,10 @@
 ﻿namespace Deepslate.Ecs;
 
-public readonly struct GlobalArchetypeCommand
+public readonly struct GlobalCommand
 {
     private readonly World _world;
 
-    internal GlobalArchetypeCommand(World world)
+    internal GlobalCommand(World world)
     {
         _world = world;
     }
@@ -12,6 +12,11 @@ public readonly struct GlobalArchetypeCommand
     public Entity Create(Archetype archetype)
     {
         return archetype.Create();
+    }
+
+    public Entity[] CreateMany(Archetype archetype, int count)
+    {
+        return archetype.CreateMany(count);
     }
 
     public bool Destroy(Entity entity)

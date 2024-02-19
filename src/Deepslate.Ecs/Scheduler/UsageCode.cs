@@ -37,7 +37,7 @@ internal struct UsageCode
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public UsageCode WithFlagOffset(int flagOffset)
+    public UsageCode WithBitOffset(int flagOffset)
     {
         return new UsageCode { _data = Vector512.BitwiseOr(_data, SingleOne[flagOffset]) };
     }
