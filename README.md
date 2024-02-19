@@ -35,12 +35,16 @@ It is designed to be fast, flexible and easy to use.
 ## How to build
 ### Prerequisites
 - .NET 8.0 SDK
+- .NET Compiler Platform SDK (Roslyn)
 
 ### Visual Studio / Rider
 Just open the solution and build it. You may need to execute the t4 templates manually.
 
 ### Powershell
-Just run the "build.ps1" script in the root directory.
+Run the build script in the root directory of the repository.
+```powershell
+./build.ps1
+```
 
 If you run this script in visual studio developer powershell, the "TextTransform.exe" will be used to execute the t4 templates.
 Otherwise, "dotnet-t4" will be installed as a local tool and do the job.
