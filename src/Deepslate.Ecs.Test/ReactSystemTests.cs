@@ -5,7 +5,7 @@ namespace Deepslate.Ecs.Test;
 
 public sealed class ReactSystemTests
 {
-    [DisabledFact]
+    [Fact(Timeout = 1000)]
     public void AfterAlloc()
     {
         var allocated = false;
