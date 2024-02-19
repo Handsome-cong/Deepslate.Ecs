@@ -31,3 +31,16 @@ It is designed to be fast, flexible and easy to use.
 - `With` prefix for methods that add or overwrite something, if the arguments of multiple calls are the same or partially the same.
 - `Add` prefix for methods that may add something multiple times, even if the arguments are the same.
 - Additional arguments for `build` methods of builders mean that the arguments are not optional and must be provided.
+
+## How to build
+### Prerequisites
+- .NET 8.0 SDK
+
+### Visual Studio / Rider
+Just open the solution and build it. You may need to execute the t4 templates manually.
+
+### Powershell
+Just run the "build.ps1" script in the root directory.
+
+If you run this script in visual studio developer powershell, the "TextTransform.exe" will be used to execute the t4 templates.
+Otherwise, "dotnet-t4" will be installed as a local tool and do the job.
