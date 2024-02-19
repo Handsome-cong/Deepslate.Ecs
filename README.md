@@ -1,3 +1,5 @@
+![example workflow](https://github.com/Handsome-cong/Deepslate.Ecs/actions/workflows/dotnet.yml/badge.svg)
+
 Deepslate.Ecs is a Entity Component System (ECS) library implemented in C#.
 It is designed to be fast, flexible and easy to use.
 
