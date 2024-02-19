@@ -43,7 +43,7 @@ public sealed class QueryInitializerGeneratorTests(ITestOutputHelper outputHelpe
                                                   }
                                                   """;
 
-    [DisabledFact]
+    [Fact]
     public void MultiQuerySystemFromText()
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(TextOfMultiQuerySystem);
@@ -91,7 +91,7 @@ public sealed class QueryInitializerGeneratorTests(ITestOutputHelper outputHelpe
         Assert.True(propertyDeclarationFound);
     }
 
-    [DisabledFact]
+    [Fact]
     public void GeneratedMultiQuerySystem()
     {
         var worldBuilder = new WorldBuilder()
