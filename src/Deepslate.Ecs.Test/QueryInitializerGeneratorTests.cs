@@ -36,7 +36,7 @@ public sealed class QueryInitializerGeneratorTests(ITestOutputHelper outputHelpe
                                                           InitializeQuery(builder);
                                                       }
                                                   
-                                                      public void Execute(EntityCommand command)
+                                                      public void Execute(Command command)
                                                       {
                                                           throw new NotImplementedException();
                                                       }

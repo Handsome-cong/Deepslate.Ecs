@@ -8,10 +8,13 @@ public sealed class World : IDisposable
     private readonly Type[] _componentTypes;
     private readonly Stage[] _stages;
 
+
     internal readonly ParallelScheduler Scheduler;
     internal readonly FrozenDictionary<Type, FrozenSet<ushort>> ComponentTypeToArchetypeIds;
     internal readonly FrozenDictionary<Type, int> ComponentTypeIds;
-    
+    internal readonly FrozenDictionary<Type, Delegate> ResourceFactories;
+    internal readonly FrozenDictionary<Type, int> ResourceIds;
+
     internal readonly StorageArrayFactory StorageArrayFactory;
 
     public IReadOnlyList<Archetype> Archetypes => _archetypes;
@@ -23,6 +26,7 @@ public sealed class World : IDisposable
         IEnumerable<Type> components,
         IEnumerable<Archetype> archetypes,
         IEnumerable<Stage> stages,
+        IDictionary<Type, Delegate> resourceFactories,
         StorageArrayFactory storageArrayFactory)
     {
         _componentTypes = components
@@ -30,6 +34,10 @@ public sealed class World : IDisposable
             .ToArray();
         _archetypes = archetypes.OrderBy(archetype => archetype.Id).ToArray();
         _stages = stages.ToArray();
+        ResourceFactories = resourceFactories.ToFrozenDictionary();
+        ResourceIds = resourceFactories
+            .Select((type, id) => (type.Key, id))
+            .ToFrozenDictionary(tuple => tuple.Key, tuple => tuple.id);
         StorageArrayFactory = storageArrayFactory;
 
         ComponentTypeToArchetypeIds = _archetypes
@@ -58,7 +66,7 @@ public sealed class World : IDisposable
 
     public Task TickAsync() => Scheduler.TickAsync();
 
-    public GlobalCommand CreateGlobalArchetypeCommand()
+    public GlobalCommand CreateGlobalCommand()
     {
         return new GlobalCommand(this);
     }

@@ -53,7 +53,7 @@ public sealed class ReactSystemTests
             }).Build();
 
         world.Tick();
-        var command = world.CreateGlobalArchetypeCommand();
+        var command = world.CreateGlobalCommand();
         var pos = command.GetComponents<Position>(archetype)[0];
         Assert.Equal(Position.One, pos);
     }

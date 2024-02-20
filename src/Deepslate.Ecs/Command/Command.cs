@@ -7,7 +7,7 @@ using Deepslate.Ecs.Util;
 
 namespace Deepslate.Ecs;
 
-public readonly ref struct EntityCommand
+public readonly ref struct Command
 {
     private readonly CommandBuffer _commandBufferEndOfStage;
     private readonly CommandBuffer _commandBufferEndOfTick;
@@ -17,7 +17,7 @@ public readonly ref struct EntityCommand
     public TickSystem TickSystem { get; }
 
 
-    internal EntityCommand(
+    internal Command(
         TickSystem tickSystem,
         CommandBuffer commandBufferEndOfStage,
         CommandBuffer commandBufferEndOfTick)
@@ -250,7 +250,7 @@ public readonly ref struct EntityCommand
 
         return count;
     }
-    
+
     /// <summary>
     /// <para>
     /// Execute all commands in the buffer.
@@ -267,7 +267,7 @@ public readonly ref struct EntityCommand
         buffer.Execute();
     }
 
-    
+
     /// <summary>
     /// <para>
     /// Execute all commands in the buffer in parallel.
@@ -680,5 +680,78 @@ public readonly ref struct EntityCommand
         /// Execute the command at the end of the current tick, after all <see cref="EndOfStage"/> commands.
         /// </summary>
         EndOfTick,
+    }
+
+    /// <summary>
+    /// <para>
+    /// Get the resource of the specified type.
+    /// </para>
+    /// <para>
+    /// Make sure the resource is required by <see cref="TickSystemBuilder.WithResource{TResource}"/>
+    /// of <see cref="TickSystemBuilder"/> and the resource factory is valid.
+    /// </para>
+    /// </summary>
+    /// <typeparam name="TResource">
+    /// The type of the resource.
+    /// </typeparam>
+    /// <returns>
+    /// The resource you want to get.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if the resource is not registered, not required, or the resource factory is invalid.
+    /// </exception>
+    /// <seealso cref="TryGetResource{TResource}"/>
+    public TResource GetResource<TResource>()
+        where TResource : IResource
+    {
+        if (!TickSystem.ResourceFactories.TryGetValue(typeof(TResource), out var factory))
+        {
+            throw new InvalidOperationException("The resource is not required by the tick system.");
+        }
+
+        if (factory is not Func<TResource> resourceFactory)
+        {
+            throw new InvalidOperationException("The resource factory registered is invalid.");
+        }
+
+        return resourceFactory();
+    }
+
+    /// <summary>
+    /// <para>
+    /// Try to get the resource of the specified type.
+    /// </para>
+    /// <para>
+    /// May fail if the resource is not required by <see cref="TickSystemBuilder.WithResource{TResource}"/>
+    /// of <see cref="TickSystemBuilder"/> or the resource factory is invalid.
+    /// </para>
+    /// </summary>
+    /// <param name="resource">
+    /// The resource you want to get.
+    /// </param>
+    /// <typeparam name="TResource">
+    /// The type of the resource.
+    /// </typeparam>
+    /// <returns>
+    /// <see langword="true"/> if the resource is got successfully, otherwise <see langword="false"/>.
+    /// </returns>
+    /// <seealso cref="GetResource{TResource}"/>
+    public bool TryGetResource<TResource>([MaybeNullWhen(false)] out TResource resource)
+        where TResource : IResource
+    {
+        resource = default;
+
+        if (!TickSystem.ResourceFactories.TryGetValue(typeof(TResource), out var factory))
+        {
+            return false;
+        }
+
+        if (factory is not Func<TResource> resourceFactory)
+        {
+            return false;
+        }
+
+        resource = resourceFactory();
+        return true;
     }
 }

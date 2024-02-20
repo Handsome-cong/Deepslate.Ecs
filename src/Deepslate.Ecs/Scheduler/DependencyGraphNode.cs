@@ -14,7 +14,11 @@ internal sealed class DependencyGraphNode(int id, TickSystem tickSystem)
     internal IReadOnlySet<DependencyGraphNode> OtherNodesConflictWithThis => _otherNodesConflictWithThis;
 
 
-    public bool LinkIfRelevant(DependencyGraphNode other, int allArchetypeCount, int allComponentTypeCount)
+    public bool LinkIfRelevant(
+        DependencyGraphNode other,
+        int allResourceCount,
+        int allArchetypeCount,
+        int allComponentTypeCount)
     {
         if (other == this)
         {
@@ -36,9 +40,9 @@ internal sealed class DependencyGraphNode(int id, TickSystem tickSystem)
         }
 
         var selfUsageCodeBundle = new UsageCodeBundle(TickSystem.UsageCodes, TickSystem.InstantCommandFlags,
-            allArchetypeCount, allComponentTypeCount);
+            allResourceCount, allArchetypeCount, allComponentTypeCount);
         var otherUsageCodeBundle = new UsageCodeBundle(other.TickSystem.UsageCodes, TickSystem.InstantCommandFlags,
-            allArchetypeCount, allComponentTypeCount);
+            allResourceCount, allArchetypeCount, allComponentTypeCount);
         if (selfUsageCodeBundle.ConflictWith(otherUsageCodeBundle))
         {
             _otherNodesConflictWithThis.Add(other);

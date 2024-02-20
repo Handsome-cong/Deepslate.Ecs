@@ -35,7 +35,7 @@ public sealed class WorldCreationTests
         stageBuilder.Build();
         
         using var world = builder.Build();
-        var command = world.CreateGlobalArchetypeCommand();
+        var command = world.CreateGlobalCommand();
         var entity = command.Create(positionArchetype);
         ref var position = ref command.GetComponent<Position>(entity);
         position = new Position { X = 0, Y = 0, Z = 0 };

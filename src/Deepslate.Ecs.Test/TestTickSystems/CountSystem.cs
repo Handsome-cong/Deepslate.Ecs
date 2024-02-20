@@ -11,7 +11,7 @@ public sealed class CountSystem : ITickSystemExecutor
             .WithReadOnly<Position>()
             .Build(out _);
     }
-    public void Execute(EntityCommand command)
+    public void Execute(Command command)
     {
         ExecutionCount++;
     }

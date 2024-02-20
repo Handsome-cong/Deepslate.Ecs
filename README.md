@@ -26,6 +26,8 @@ It is designed to be fast, flexible and easy to use.
   - [x] Execution of deferred command created by `EntityCommand`
 - [x] `EntityCommand` for creating, destroying and modifying entities and components in tick
 - [x] `GlobalCommand` for creating, destroying and modifying entities and components out of tick
+- [X] `Resource` for global data
+- [ ] `SortableComponent` for sorting entities
 
 ## Api Conventions
 - `With` prefix for methods that add or overwrite something, if the arguments of multiple calls are the same or partially the same.

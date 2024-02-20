@@ -91,7 +91,7 @@ internal sealed class ParallelScheduler
         tickSystem.ExecutionTask = new Task(() =>
         {
             tickSystem.Executor.Execute(
-                new EntityCommand(tickSystem, _commandBufferEndOfStage,_commandBufferEndOfTick));
+                new Command(tickSystem, _commandBufferEndOfStage,_commandBufferEndOfTick));
         });
         tickSystem.ExecutionTask.Start();
         await tickSystem.ExecutionTask;

@@ -2,7 +2,7 @@
 
 public interface ITickSystemExecutor : IDisposable
 {
-    void Execute(EntityCommand command);
+    void Execute(Command command);
 
     void PostInitialize(World world)
     {

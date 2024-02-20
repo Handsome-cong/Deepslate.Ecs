@@ -18,7 +18,7 @@ public sealed partial class RecordCreateSystem : ITickSystemExecutor
         _count = count;
     }
 
-    public void Execute(EntityCommand command)
+    public void Execute(Command command)
     {
         foreach (var _ in Enumerable.Range(0, _count))
         {

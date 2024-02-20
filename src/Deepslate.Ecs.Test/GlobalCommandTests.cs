@@ -1,4 +1,5 @@
 ﻿using Deepslate.Ecs.Extensions;
+using Deepslate.Ecs.Test.TestResources;
 
 namespace Deepslate.Ecs.Test;
 
@@ -10,7 +11,7 @@ public sealed class GlobalCommandTests
         using var world = new WorldBuilder()
             .WithArchetypeAndBuild<Position>(out var positionArchetype)
             .Build();
-        var command = world.CreateGlobalArchetypeCommand();
+        var command = world.CreateGlobalCommand();
         var entity = command.Create(positionArchetype);
         Assert.True(command.Contains(entity));
     }
@@ -21,7 +22,7 @@ public sealed class GlobalCommandTests
         using var world = new WorldBuilder()
             .WithArchetypeAndBuild<Position>(out var positionArchetype)
             .Build();
-        var command = world.CreateGlobalArchetypeCommand();
+        var command = world.CreateGlobalCommand();
         var entity = command.Create(positionArchetype);
         Assert.True(command.Contains(entity));
         Assert.True(command.Destroy(entity));
@@ -34,7 +35,7 @@ public sealed class GlobalCommandTests
         using var world = new WorldBuilder()
             .WithArchetypeAndBuild<Position>(out var positionArchetype)
             .Build();
-        var command = world.CreateGlobalArchetypeCommand();
+        var command = world.CreateGlobalCommand();
         var entity = command.Create(positionArchetype);
         ref var position = ref command.GetComponent<Position>(entity);
         position = new Position { X = 0, Y = 0, Z = 0 };
@@ -49,7 +50,7 @@ public sealed class GlobalCommandTests
         using var world = new WorldBuilder()
             .WithArchetypeAndBuild<Position>(out var positionArchetype)
             .Build();
-        var command = world.CreateGlobalArchetypeCommand();
+        var command = world.CreateGlobalCommand();
         var entities = command.CreateMany(positionArchetype, count);
         var positions = command.GetComponents<Position>(positionArchetype);
         
@@ -67,5 +68,17 @@ public sealed class GlobalCommandTests
         {
             Assert.Equal(positions[i], positions2[i]);
         }
+    }
+
+    [Fact]
+    public void GetResource()
+    {
+        using var world = new WorldBuilder()
+            .WithResource(new CounterResourceFactory().Create)
+            .Build();
+        var command = world.CreateGlobalCommand();
+        var resource1 = command.GetResource<CounterResource>();
+        var resource2 = command.GetResource<CounterResource>();
+        Assert.Equal(1, resource2.Value - resource1.Value);
     }
 }

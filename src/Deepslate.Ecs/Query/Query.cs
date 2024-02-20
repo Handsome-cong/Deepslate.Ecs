@@ -132,8 +132,8 @@ public sealed class Query
     private UsageCode[] CalculateUsageCodes(FrozenDictionary<Type, int> componentTypeIds, int allArchetypeCount)
     {
         var allComponentTypeCount = componentTypeIds.Count;
-        var archetypeUsageCodeCount = (allArchetypeCount - 1) / UsageCode.SizeOfBits + 1;
-        var componentUsageCodeCount = (allComponentTypeCount - 1) / UsageCode.SizeOfBits + 1;
+        var archetypeUsageCodeCount = UsageCodeHelper.GetUsageCodeCount(allArchetypeCount);
+        var componentUsageCodeCount = UsageCodeHelper.GetUsageCodeCount(allComponentTypeCount);
         var queryUsageCodeCount = archetypeUsageCodeCount + componentUsageCodeCount * 2;
         var queryUsageCode = new UsageCode[queryUsageCodeCount];
         var queryUsageCodeSpan = queryUsageCode.AsSpan();
@@ -148,32 +148,19 @@ public sealed class Query
             archetypesUsageCode = archetypesUsageCode.WithBitOffset(archetypeId % UsageCode.SizeOfBits);
         }
 
-        FillComponentUsageCode(writableComponentUsageCode, _requiredWritableComponentTypes, componentTypeIds);
-        FillComponentUsageCode(readableComponentUsageCode, _requiredWritableComponentTypes, componentTypeIds);
-        FillComponentUsageCode(readableComponentUsageCode, _requiredReadOnlyComponentTypes, componentTypeIds);
+        UsageCodeHelper.FillUsageCode(writableComponentUsageCode, _requiredWritableComponentTypes, componentTypeIds);
+        UsageCodeHelper.FillUsageCode(readableComponentUsageCode, _requiredWritableComponentTypes, componentTypeIds);
+        UsageCodeHelper.FillUsageCode(readableComponentUsageCode, _requiredReadOnlyComponentTypes, componentTypeIds);
 
         if (RequireInstantCommand)
         {
             var allComponentTypes = MatchedArchetypes
                 .SelectMany(archetype => archetype.ComponentTypes)
                 .ToArray();
-            FillComponentUsageCode(writableComponentUsageCode, allComponentTypes, componentTypeIds);
-            FillComponentUsageCode(readableComponentUsageCode, allComponentTypes, componentTypeIds);
+            UsageCodeHelper.FillUsageCode(writableComponentUsageCode, allComponentTypes, componentTypeIds);
+            UsageCodeHelper.FillUsageCode(readableComponentUsageCode, allComponentTypes, componentTypeIds);
         }
 
         return queryUsageCode;
-    }
-
-    private static void FillComponentUsageCode(
-        Span<UsageCode> componentUsageCodes,
-        Span<Type> componentTypes,
-        IReadOnlyDictionary<Type, int> componentTypeIds)
-    {
-        foreach (var componentType in componentTypes)
-        {
-            var componentTypeId = componentTypeIds[componentType];
-            ref var componentUsageCode = ref componentUsageCodes[componentTypeId / UsageCode.SizeOfBits];
-            componentUsageCode = componentUsageCode.WithBitOffset(componentTypeId % UsageCode.SizeOfBits);
-        }
     }
 }

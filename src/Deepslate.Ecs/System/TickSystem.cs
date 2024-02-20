@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Frozen;
+﻿using System.Collections.Frozen;
 using System.Runtime.InteropServices;
 
 namespace Deepslate.Ecs;
@@ -17,6 +16,9 @@ public sealed class TickSystem
 
     internal FrozenDictionary<ushort, Archetype> MatchedArchetypesById { get; private set; } =
         FrozenDictionary<ushort, Archetype>.Empty;
+    
+    internal FrozenDictionary<Type, Delegate> ResourceFactories { get; private set; } =
+        FrozenDictionary<Type, Delegate>.Empty;
 
     public ITickSystemExecutor Executor { get; }
     public bool Running => !ExecutionTask.IsCompleted;
@@ -38,6 +40,7 @@ public sealed class TickSystem
 
     public FrozenDictionary<Archetype, FrozenSet<Type>> WritableComponentTypes { get; }
     public FrozenDictionary<Archetype, FrozenSet<Type>> ReadableComponentTypes { get; }
+    public FrozenSet<Type> ResourceTypes { get; }
 
     /// <summary>
     /// The stage this system is in. <br/>
@@ -48,11 +51,13 @@ public sealed class TickSystem
     internal TickSystem(
         ITickSystemExecutor executor,
         IEnumerable<Query> queries,
-        IEnumerable<TickSystem> dependentSystems)
+        IEnumerable<TickSystem> dependentSystems,
+        IEnumerable<Type> resourceTypes)
     {
         Executor = executor;
         Queries = queries.ToFrozenSet();
         _otherSystemsThisDependsOn = [..dependentSystems];
+        ResourceTypes = resourceTypes.ToFrozenSet();
 
         var writableComponentTypes = new Dictionary<Archetype, HashSet<Type>>();
         var readableComponentTypes = new Dictionary<Archetype, HashSet<Type>>();
@@ -100,21 +105,28 @@ public sealed class TickSystem
 
     internal void PostInitialize(World world, Stage stage)
     {
+        ThrowIfResourceNotRegistered(world);
         Stage = stage;
         foreach (var query in Queries)
         {
             query.PostInitialize(world);
         }
 
-        var length = Queries.Aggregate(0, (current, query) => current + query.UsageCodes.Length);
+        var resourceUsageCodeCount = UsageCodeHelper.GetUsageCodeCount(world.ResourceIds.Count);
+        var queryUsageCodeCount = Queries.Aggregate(0, (current, query) => current + query.UsageCodes.Length);
+        var length = queryUsageCodeCount + resourceUsageCodeCount;
         _usageCodes = new UsageCode[length];
+        var resourceUsageCodes = _usageCodes.AsSpan(0, resourceUsageCodeCount);
+        var queryUsageCodes = _usageCodes.AsSpan(resourceUsageCodeCount, queryUsageCodeCount);
+        
+        UsageCodeHelper.FillUsageCode(resourceUsageCodes, ResourceTypes, world.ResourceIds);
 
         InstantCommandFlags = new bool[Queries.Count];
         var start = 0;
         var i = 0;
         foreach (var query in Queries)
         {
-            query.UsageCodes.CopyTo(_usageCodes.AsSpan(start, query.UsageCodes.Length));
+            query.UsageCodes.CopyTo(queryUsageCodes.Slice(start, query.UsageCodes.Length));
             start += query.UsageCodes.Length;
             InstantCommandFlags[i++] = query.RequireInstantCommand;
         }
@@ -127,6 +139,17 @@ public sealed class TickSystem
             .ToFrozenSet();
         MatchedArchetypesById = MatchedArchetypes.ToFrozenDictionary(archetype => archetype.Id);
         
+        ResourceFactories = ResourceTypes.ToFrozenDictionary(
+            type => type, type => world.ResourceFactories[type]);
+        
         Executor.PostInitialize(world);
+    }
+    
+    private void ThrowIfResourceNotRegistered(World world)
+    {
+        if (ResourceTypes.Any(type => !world.ResourceFactories.ContainsKey(type)))
+        {
+            throw new InvalidOperationException("Resource not registered in world.");
+        }
     }
 }

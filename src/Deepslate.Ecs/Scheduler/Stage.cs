@@ -20,6 +20,11 @@ public sealed class Stage
         {
             tickSystem.PostInitialize(world, this);
         }
-        Graph = new DependencyGraph(_tickSystems, world.Archetypes.Count, world.ComponentTypes.Count);
+
+        Graph = new DependencyGraph(
+            _tickSystems,
+            world.ResourceFactories.Count,
+            world.Archetypes.Count,
+            world.ComponentTypes.Count);
     }
 }

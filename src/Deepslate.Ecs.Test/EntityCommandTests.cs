@@ -3,7 +3,7 @@ using Deepslate.Ecs.Test.TestTickSystems;
 
 namespace Deepslate.Ecs.Test;
 
-public sealed class EntityCommandTests
+public sealed class CommandTests
 {
     private const int CreationCount = 2;
 

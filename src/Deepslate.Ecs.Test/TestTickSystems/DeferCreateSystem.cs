@@ -16,7 +16,7 @@ public sealed partial class DeferCreateSystem : ITickSystemExecutor
         _count = count;
     }
 
-    public void Execute(EntityCommand command)
+    public void Execute(Command command)
     {
         command.DeferCreate(_query.MatchedArchetypes[0], count: _count);
     }

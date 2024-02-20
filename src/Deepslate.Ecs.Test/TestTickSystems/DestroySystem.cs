@@ -13,7 +13,7 @@ public sealed partial class DestroySystem : ITickSystemExecutor
         builder.Build(this, out _);
     }
 
-    public void Execute(EntityCommand command)
+    public void Execute(Command command)
     {
         List<Entity> entities = [];
         foreach (var entityComponentBundle in _queryGeneric)

@@ -17,19 +17,17 @@ public static partial class WorldBuilderExtensions
         configuredStage = stageBuilder.Result;
         return builder;
     }
-
-    public static WorldBuilder AddStage(this WorldBuilder builder, Func<StageBuilder, Stage> configure)
+    
+    public static WorldBuilder AddStageAndBuild(this WorldBuilder builder, Action<StageBuilder> configure)
     {
-        return builder.AddStage(configure, out _);
+        return builder.AddStageAndBuild(configure, out _);
     }
-
-    public static WorldBuilder AddStage(
-        this WorldBuilder builder,
-        Func<StageBuilder, Stage> configure,
-        out Stage configuredStage)
+    
+    public static WorldBuilder AddStageAndBuild(this WorldBuilder builder, Action<StageBuilder> configure, out Stage configuredStage)
     {
         var stageBuilder = builder.AddStage();
-        configuredStage = configure(stageBuilder);
+        configure(stageBuilder);
+        stageBuilder.Build(out configuredStage);
         return builder;
     }
 
@@ -61,6 +59,13 @@ public static partial class WorldBuilderExtensions
     {
         var archetypeBuilder = builder.WithArchetype();
         configuredArchetype = configure(archetypeBuilder);
+        return builder;
+    }
+    
+    public static WorldBuilder WithResource<TResource>(this WorldBuilder builder, TResource resource)
+        where TResource : IResource
+    {
+        builder.WithResource(() => resource);
         return builder;
     }
 }

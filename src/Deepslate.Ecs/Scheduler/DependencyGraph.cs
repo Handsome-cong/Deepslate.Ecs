@@ -8,6 +8,7 @@ internal sealed class DependencyGraph
 
     internal DependencyGraph(
         IReadOnlyList<TickSystem> tickSystems,
+        int allResourceCount,
         int allArchetypeCount,
         int allComponentTypeCount)
     {
@@ -17,10 +18,10 @@ internal sealed class DependencyGraph
             _nodes[i] = new DependencyGraphNode(i, tickSystems[i]);
         }
 
-        LinkNodes(allArchetypeCount, allComponentTypeCount);
+        LinkNodes(allResourceCount, allArchetypeCount, allComponentTypeCount);
     }
 
-    private void LinkNodes(int allArchetypeCount, int allComponentTypeCount)
+    private void LinkNodes(int allResourceCount, int allArchetypeCount, int allComponentTypeCount)
     {
         // A brute force approach to link all nodes.
         // There should be room for optimization here, if the graph is big enough.
@@ -29,7 +30,7 @@ internal sealed class DependencyGraph
         {
             for (var j = i + 1; j < _nodes.Length; j++)
             {
-                _nodes[i].LinkIfRelevant(_nodes[j], allArchetypeCount, allComponentTypeCount);
+                _nodes[i].LinkIfRelevant(_nodes[j], allResourceCount, allArchetypeCount, allComponentTypeCount);
             }
         }
     }

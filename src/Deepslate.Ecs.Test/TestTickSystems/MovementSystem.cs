@@ -14,7 +14,7 @@ public sealed partial class MovementSystem : ITickSystemExecutor
             .Build(out _positionQuery);
     }
     
-    public void Execute(EntityCommand command)
+    public void Execute(Command command)
     {
         foreach (var bundle in _positionQuery)
         {

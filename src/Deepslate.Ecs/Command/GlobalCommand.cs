@@ -51,4 +51,20 @@ public readonly struct GlobalCommand
     {
         return GetArchetype(entity)?.ContainsEntity(entity) ?? false;
     }
+    
+    public TResource GetResource<TResource>()
+        where TResource : IResource
+    {
+        if (!_world.ResourceFactories.TryGetValue(typeof(TResource), out var factory))
+        {
+            throw new InvalidOperationException("The resource has not been registered.");
+        }
+
+        if (factory is not Func<TResource> resourceFactory)
+        {
+            throw new InvalidOperationException("The resource factory is invalid.");
+        }
+
+        return resourceFactory();
+    }
 }

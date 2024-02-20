@@ -17,7 +17,7 @@ public sealed partial class MultiQuerySystem : ITickSystemExecutor
         InitializeQuery(builder);
     }
 
-    public void Execute(EntityCommand command)
+    public void Execute(Command command)
     {
     }
 }

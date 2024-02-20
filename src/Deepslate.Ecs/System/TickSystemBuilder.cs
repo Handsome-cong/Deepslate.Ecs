@@ -4,6 +4,7 @@ public sealed class TickSystemBuilder
 {
     private readonly List<Query> _queries = [];
     private readonly HashSet<TickSystem> _dependencies = [];
+    private readonly HashSet<Type> _resourceTypes = [];
 
     public StageBuilder StageBuilder { get; }
     public TickSystem? Result { get; private set; }
@@ -20,6 +21,13 @@ public sealed class TickSystemBuilder
         _dependencies.Add(system);
         return this;
     }
+    
+    public TickSystemBuilder WithResource<TResource>()
+        where TResource : IResource
+    {
+        _resourceTypes.Add(typeof(TResource));
+        return this;
+    }
 
     public QueryBuilder AddQuery() => new(this);
 
@@ -33,7 +41,7 @@ public sealed class TickSystemBuilder
             return StageBuilder;
         }
 
-        configuredTickSystem = new TickSystem(executor, _queries, _dependencies);
+        configuredTickSystem = new TickSystem(executor, _queries, _dependencies, _resourceTypes);
         Result = configuredTickSystem;
         StageBuilder.RegisterTickSystem(configuredTickSystem);
         return StageBuilder;
