@@ -1,14 +1,14 @@
 ﻿namespace Deepslate.Ecs;
 
 public ref struct ComponentStorageEnumerator<TComponent>
-    where TComponent : IComponentData
+    where TComponent : IComponent
 {
-    private readonly IComponentDataStorage<TComponent>[] _storages;
+    private readonly IComponentStorage<TComponent>[] _storages;
     private Span<TComponent> _currentComponentSpan = Span<TComponent>.Empty;
     private int _currentStorageIndex = -1;
     private int _currentIndex = -1;
 
-    internal ComponentStorageEnumerator(IComponentDataStorage<TComponent>[] storages)
+    internal ComponentStorageEnumerator(IComponentStorage<TComponent>[] storages)
     {
         _storages = storages;
     }

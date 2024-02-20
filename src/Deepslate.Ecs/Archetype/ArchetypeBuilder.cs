@@ -13,7 +13,7 @@ public sealed class ArchetypeBuilder
     }
 
     public ArchetypeBuilder WithComponent<TComponent>()
-        where TComponent : IComponentData
+        where TComponent : IComponent
     {
         _componentTypes.Add(typeof(TComponent));
         return this;
@@ -28,7 +28,7 @@ public sealed class ArchetypeBuilder
             return _worldBuilder;
         }
 
-        var storages = new IComponentDataStorage[_componentTypes.Count];
+        var storages = new IComponentStorage[_componentTypes.Count];
         var count = 0;
         foreach (var componentType in _componentTypes)
         {

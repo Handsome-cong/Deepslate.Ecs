@@ -5,19 +5,19 @@ namespace Deepslate.Ecs;
 public sealed partial class Archetype
 {
     private readonly Type[] _componentTypes;
-    private readonly IComponentDataStorage[] _componentStorages;
+    private readonly IComponentStorage[] _componentStorages;
 
-    internal FrozenDictionary<Type, IComponentDataStorage> ComponentStorageDictionary { get; }
+    internal FrozenDictionary<Type, IComponentStorage> ComponentStorageDictionary { get; }
 
     public IReadOnlyList<Type> ComponentTypes => _componentTypes;
     
     public bool ContainsComponent<TComponent>()
-        where TComponent : IComponentData => ComponentStorageDictionary.ContainsKey(typeof(TComponent));
+        where TComponent : IComponent => ComponentStorageDictionary.ContainsKey(typeof(TComponent));
     
     public int ComponentTypesHashCode { get; }
 
     internal ref TComponent GetComponent<TComponent>(Entity entity)
-        where TComponent : IComponentData
+        where TComponent : IComponent
     {
         var index = _entities.IndexOf(entity);
         if (index == EntityStorage.NoIndex)
@@ -29,7 +29,7 @@ public sealed partial class Archetype
     }
 
     internal bool TryGetComponent<TComponent>(Entity entity, out Span<TComponent> component)
-        where TComponent : IComponentData
+        where TComponent : IComponent
     {
         var index = _entities.IndexOf(entity);
         if (index == EntityStorage.NoIndex)
@@ -43,7 +43,7 @@ public sealed partial class Archetype
     }
 
     internal Span<TComponent> GetComponents<TComponent>(Range range)
-        where TComponent : IComponentData
+        where TComponent : IComponent
     {
         if (!ComponentStorageDictionary.TryGetValue(typeof(TComponent), out var storage))
         {
@@ -51,18 +51,18 @@ public sealed partial class Archetype
         }
 
         var (offset, length) = range.GetOffsetAndLength(Count);
-        return ((IComponentDataStorage<TComponent>)storage).AsSpan().Slice(offset, length);
+        return ((IComponentStorage<TComponent>)storage).AsSpan().Slice(offset, length);
     }
 
-    internal IComponentDataStorage<TComponent> GetStorage<TComponent>()
-        where TComponent : IComponentData
+    internal IComponentStorage<TComponent> GetStorage<TComponent>()
+        where TComponent : IComponent
     {
         if (!ComponentStorageDictionary.TryGetValue(typeof(TComponent), out var storage))
         {
             throw new ArgumentOutOfRangeException(nameof(TComponent), "Component does not exist in this archetype.");
         }
 
-        return (IComponentDataStorage<TComponent>)storage;
+        return (IComponentStorage<TComponent>)storage;
     }
 
     public void Dispose()

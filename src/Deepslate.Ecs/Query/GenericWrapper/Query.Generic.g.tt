@@ -18,7 +18,7 @@ namespace Deepslate.Ecs.GenericWrapper;
         writableGenericParameters = writableGenericParameterCount > 0 ? $"<{writableGenericParameters}>" : "";
 
         var writableGenericParametersWhere = string.Concat(
-            Enumerable.Range(1, writableGenericParameterCount).Select(i => $"    where TWritable{i} : IComponentData\n"));
+            Enumerable.Range(1, writableGenericParameterCount).Select(i => $"    where TWritable{i} : IComponent\n"));
 #>
 public partial struct Writable<#= writableGenericParameters #>
 <#= writableGenericParametersWhere #>{
@@ -32,13 +32,13 @@ public partial struct Writable<#= writableGenericParameters #>
 
             var readOnlyGenericParametersWhere = string.Concat(
                 Enumerable.Range(1, readOnlyGenericParameterCount)
-                    .Select(i => $"        where TReadOnly{i} : IComponentData\n"));
+                    .Select(i => $"        where TReadOnly{i} : IComponent\n"));
 
             var writableStorages = string.Join("\n", Enumerable.Range(1, writableGenericParameterCount)
-                .Select(i => $"            private IComponentDataStorage<TWritable{i}>[] _writable{i}Storages = default!;"));
+                .Select(i => $"            private IComponentStorage<TWritable{i}>[] _writable{i}Storages = default!;"));
 
             var readOnlyStorages = string.Join("\n", Enumerable.Range(1, readOnlyGenericParameterCount)
-                .Select(i => $"            private IComponentDataStorage<TReadOnly{i}>[] _readOnly{i}Storages = default!;"));
+                .Select(i => $"            private IComponentStorage<TReadOnly{i}>[] _readOnly{i}Storages = default!;"));
 
             var writableStoragesInitialization = string.Join("\n", Enumerable.Range(1, writableGenericParameterCount)
                 .Select(i => $"                _writable{i}Storages = TypelessQuery.GetStorages<TWritable{i}>();"));

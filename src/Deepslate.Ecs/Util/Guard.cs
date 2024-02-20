@@ -11,9 +11,9 @@ internal static class Guard
         [CallerArgumentExpression(nameof(type))]
         string argument = "Unknown")
     {
-        if (!typeof(IComponentData).IsAssignableFrom(type))
+        if (!typeof(IComponent).IsAssignableFrom(type))
         {
-            throw new ArgumentException("Type must implement IComponentData", argument);
+            throw new ArgumentException("Type must implement IComponent", argument);
         }
     }
 

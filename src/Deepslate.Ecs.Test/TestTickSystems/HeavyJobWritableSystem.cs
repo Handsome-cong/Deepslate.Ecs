@@ -3,7 +3,7 @@
 namespace Deepslate.Ecs.Test.TestTickSystems;
 
 public sealed class HeavyJobWritableSystem<TComponent> : ITickSystemExecutor, ITimeRecorded
-    where TComponent : IComponentData
+    where TComponent : IComponent
 {
     public long ElapsedTime { get; private set; }
 
@@ -25,8 +25,8 @@ public sealed class HeavyJobWritableSystem<TComponent> : ITickSystemExecutor, IT
     }
 }
 public sealed class HeavyJobWritableSystem<TComponent1, TComponent2> : ITickSystemExecutor, ITimeRecorded
-    where TComponent1 : IComponentData
-    where TComponent2 : IComponentData
+    where TComponent1 : IComponent
+    where TComponent2 : IComponent
 {
     public long ElapsedTime { get; private set; }
 

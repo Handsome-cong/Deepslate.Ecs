@@ -5,8 +5,8 @@ using System.Runtime.InteropServices;
 namespace Deepslate.Ecs;
 
 internal sealed class UnmanagedComponentStorage<TComponent>(WorldBuilder builder)
-    : IComponentDataStorage<TComponent>
-    where TComponent : unmanaged, IComponentData
+    : IComponentStorage<TComponent>
+    where TComponent : unmanaged, IComponent
 {
     private readonly IUnmanagedComponentStoragePool _pool =
         builder.ComponentPoolFactory.CreateUnmanagedPool<TComponent>();

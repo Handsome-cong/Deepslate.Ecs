@@ -4,21 +4,21 @@ using Deepslate.Ecs.Util;
 namespace Deepslate.Ecs;
 
 /// <summary>
-/// This is mainly used to convert <see cref="IComponentDataStorage"/>[]
-/// to <see cref="IComponentDataStorage{TComponent}"/>[].
+/// This is mainly used to convert <see cref="IComponentStorage"/>[]
+/// to <see cref="IComponentStorage{TComponent}"/>[].
 /// </summary>
 internal sealed class StorageArrayFactory
 {
     internal readonly
-        Dictionary<Type, Func<IEnumerable<IComponentDataStorage>, IReadOnlyList<IComponentDataStorage>>>
+        Dictionary<Type, Func<IEnumerable<IComponentStorage>, IReadOnlyList<IComponentStorage>>>
         Factories = [];
 
     internal void RegisterFactory<TComponent>()
-        where TComponent : IComponentData
+        where TComponent : IComponent
     {
         Factories.TryAdd(
             typeof(TComponent),
-            storages => storages.Cast<IComponentDataStorage<TComponent>>().ToArray());
+            storages => storages.Cast<IComponentStorage<TComponent>>().ToArray());
     }
 
     private static readonly MethodInfo TypelessRegisterFactory = typeof(StorageArrayFactory)

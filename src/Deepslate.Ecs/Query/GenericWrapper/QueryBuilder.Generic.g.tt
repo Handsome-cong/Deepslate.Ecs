@@ -15,7 +15,7 @@ namespace Deepslate.Ecs.GenericWrapper;
         writableGenericParameters = writableGenericParameterCount > 0 ? $"<{writableGenericParameters}>" : "";
 
         var writableGenericParametersWhere = string.Join("\n",
-            Enumerable.Range(1, writableGenericParameterCount).Select(i => $"    where TWritable{i} : IComponentData"));
+            Enumerable.Range(1, writableGenericParameterCount).Select(i => $"    where TWritable{i} : IComponent"));
 #>
 public partial struct Writable<#= writableGenericParameters #>
 <#= writableGenericParametersWhere #>{
@@ -29,7 +29,7 @@ public partial struct Writable<#= writableGenericParameters #>
 
             var readOnlyGenericParametersWhere = string.Join("\n",
                 Enumerable.Range(1, readOnlyGenericParameterCount)
-                    .Select(i => $"        where TReadOnly{i} : IComponentData"));
+                    .Select(i => $"        where TReadOnly{i} : IComponent"));
             
             var writablePartResultOfWithWritable = string.Join(", ",
                 Enumerable.Range(1, writableGenericParameterCount + 1)
@@ -56,11 +56,11 @@ public partial struct Writable<#= writableGenericParameters #>
             public Deepslate.Ecs.QueryBuilder TypelessBuilder { get; } = builder;
 
             public QueryBuilder With<TComponent>()
-                where TComponent : IComponentData =>
+                where TComponent : IComponent =>
                 new(TypelessBuilder.WithIncluded(typeof(TComponent)));
 
             public QueryBuilder WithExcluded<TComponent>()
-                where TComponent : IComponentData =>
+                where TComponent : IComponent =>
                 new(TypelessBuilder.WithExcluded(typeof(TComponent)));
 
             public QueryBuilder WithFilter(Predicate<Archetype> filter) =>
@@ -74,7 +74,7 @@ public partial struct Writable<#= writableGenericParameters #>
             {
 #>
             public Writable<#= writablePartResultOfWithWritable #>.ReadOnly<#= readOnlyPartResultOfWithWritable #>.QueryBuilder WithWritable<<#= nextWritableGenericParameter #>>()
-                where <#= nextWritableGenericParameter #> : IComponentData =>
+                where <#= nextWritableGenericParameter #> : IComponent =>
                 new(TypelessBuilder.WithWritable(typeof(<#= nextWritableGenericParameter #>)));
 
 <#
@@ -83,7 +83,7 @@ public partial struct Writable<#= writableGenericParameters #>
             {
 #>
             public ReadOnly<#= readOnlyPartResultOfWithReadOnly #>.QueryBuilder WithReadOnly<<#= nextReadOnlyGenericParameter #>>()
-                where <#= nextReadOnlyGenericParameter #> : IComponentData =>
+                where <#= nextReadOnlyGenericParameter #> : IComponent =>
                 new(TypelessBuilder.WithReadOnly(typeof(<#= nextReadOnlyGenericParameter #>)));
 
 <#

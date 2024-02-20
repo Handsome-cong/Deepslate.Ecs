@@ -1,6 +1,6 @@
 ﻿namespace Deepslate.Ecs;
 
-public interface IComponentDataStorage : IDisposable
+public interface IComponentStorage : IDisposable
 {
     /// <summary>
     /// The size of expanded space when the space isn't enough.
@@ -20,10 +20,10 @@ public interface IComponentDataStorage : IDisposable
     void RemoveMany(Span<int> sortedIndices);
 }
 
-public interface IComponentDataStorage<TComponent> : IComponentDataStorage
-    where TComponent : IComponentData
+public interface IComponentStorage<TComponent> : IComponentStorage
+    where TComponent : IComponent
 {
-    Type IComponentDataStorage.ComponentType => typeof(TComponent);
+    Type IComponentStorage.ComponentType => typeof(TComponent);
 
     protected IReactBeforeDestroy<TComponent>? ReactBeforeDestroy => null;
     protected IReactBeforeMove<TComponent>? ReactBeforeMove => null;
@@ -36,10 +36,10 @@ public interface IComponentDataStorage<TComponent> : IComponentDataStorage
 
     ref TComponent this[int index] => ref AsSpan()[index];
 
-    void IComponentDataStorage.Add(int count) => Add(count);
-    void IComponentDataStorage.Pop(int count) => Pop(count);
+    void IComponentStorage.Add(int count) => Add(count);
+    void IComponentStorage.Pop(int count) => Pop(count);
 
-    void IComponentDataStorage.Remove(int index)
+    void IComponentStorage.Remove(int index)
     {
         var count = Count;
         if (index < 0 || index >= count)
@@ -60,7 +60,7 @@ public interface IComponentDataStorage<TComponent> : IComponentDataStorage
         Pop();
     }
 
-    void IComponentDataStorage.RemoveMany(Span<int> sortedIndices)
+    void IComponentStorage.RemoveMany(Span<int> sortedIndices)
     {
         if (sortedIndices.Length == 0)
         {

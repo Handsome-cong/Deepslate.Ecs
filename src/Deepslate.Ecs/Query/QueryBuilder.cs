@@ -100,14 +100,14 @@ public class QueryBuilder
 public static class QueryBuilderExtensions
 {
     public static QueryBuilder WithWritable<TWritable>(this QueryBuilder self)
-        where TWritable : IComponentData => self.WithWritable(typeof(TWritable));
+        where TWritable : IComponent => self.WithWritable(typeof(TWritable));
 
     public static QueryBuilder WithReadOnly<TWritable>(this QueryBuilder self)
-        where TWritable : IComponentData => self.WithReadOnly(typeof(TWritable));
+        where TWritable : IComponent => self.WithReadOnly(typeof(TWritable));
 
     public static QueryBuilder WithIncluded<TWritable>(this QueryBuilder self)
-        where TWritable : IComponentData => self.WithIncluded(typeof(TWritable));
+        where TWritable : IComponent => self.WithIncluded(typeof(TWritable));
 
     public static QueryBuilder WithExcluded<TWritable>(this QueryBuilder self)
-        where TWritable : IComponentData => self.WithExcluded(typeof(TWritable));
+        where TWritable : IComponent => self.WithExcluded(typeof(TWritable));
 }

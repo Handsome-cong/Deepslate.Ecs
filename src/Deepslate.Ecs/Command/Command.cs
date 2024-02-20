@@ -496,7 +496,7 @@ public readonly ref struct Command
     /// <seealso cref="GetReadOnlyComponent{TComponent}"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref TComponent GetWritableComponent<TComponent>(Entity entity)
-        where TComponent : IComponentData
+        where TComponent : IComponent
     {
         if (!TryGetArchetypeIfMatched(entity, out var archetype))
         {
@@ -531,7 +531,7 @@ public readonly ref struct Command
     /// </exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref readonly TComponent GetReadOnlyComponent<TComponent>(Entity entity)
-        where TComponent : IComponentData
+        where TComponent : IComponent
     {
         if (!TryGetArchetypeIfMatched(entity, out var archetype))
         {

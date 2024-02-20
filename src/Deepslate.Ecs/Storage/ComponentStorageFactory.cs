@@ -5,17 +5,17 @@ namespace Deepslate.Ecs;
 
 internal sealed class ComponentStorageFactory
 {
-    internal readonly Dictionary<Type, Func<WorldBuilder, IComponentDataStorage>> Factories = [];
+    internal readonly Dictionary<Type, Func<WorldBuilder, IComponentStorage>> Factories = [];
     
     
     internal void RegisterManagedFactory<TComponent>()
-        where TComponent : IComponentData
+        where TComponent : IComponent
     {
         Factories[typeof(TComponent)] = builder => new ManagedComponentStorage<TComponent>(builder);
     }
 
     internal void RegisterUnmanagedFactory<TComponent>()
-        where TComponent : unmanaged, IComponentData
+        where TComponent : unmanaged, IComponent
     {
         Factories[typeof(TComponent)] = builder => new UnmanagedComponentStorage<TComponent>(builder);
     }

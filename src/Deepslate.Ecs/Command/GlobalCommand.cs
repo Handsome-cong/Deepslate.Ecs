@@ -25,7 +25,7 @@ public readonly struct GlobalCommand
     }
 
     public ref TComponent GetComponent<TComponent>(Entity entity)
-        where TComponent : IComponentData
+        where TComponent : IComponent
     {
         var archetype = GetArchetype(entity);
         if (archetype == null)
@@ -36,7 +36,7 @@ public readonly struct GlobalCommand
     }
 
     public Span<TComponent> GetComponents<TComponent>(Archetype archetype)
-        where TComponent : IComponentData
+        where TComponent : IComponent
     {
         return archetype.GetStorage<TComponent>().AsSpan();
     }

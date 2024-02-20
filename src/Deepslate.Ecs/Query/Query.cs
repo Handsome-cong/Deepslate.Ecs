@@ -13,8 +13,8 @@ public sealed class Query
 
     private UsageCode[] _usageCodes = Array.Empty<UsageCode>();
 
-    private FrozenDictionary<Type, IReadOnlyList<IComponentDataStorage>> _storages =
-        FrozenDictionary<Type, IReadOnlyList<IComponentDataStorage>>.Empty;
+    private FrozenDictionary<Type, IReadOnlyList<IComponentStorage>> _storages =
+        FrozenDictionary<Type, IReadOnlyList<IComponentStorage>>.Empty;
 
     internal ReadOnlySpan<UsageCode> UsageCodes => _usageCodes;
 
@@ -59,7 +59,7 @@ public sealed class Query
             world.StorageArrayFactory);
     }
 
-    private FrozenDictionary<Type, IReadOnlyList<IComponentDataStorage>> CollectStorages(
+    private FrozenDictionary<Type, IReadOnlyList<IComponentStorage>> CollectStorages(
         IEnumerable<Type> componentTypes,
         StorageArrayFactory storageArrayFactory)
     {
@@ -73,11 +73,11 @@ public sealed class Query
             });
     }
 
-    internal IComponentDataStorage<TComponent>[] GetStorages<TComponent>()
-        where TComponent : IComponentData
+    internal IComponentStorage<TComponent>[] GetStorages<TComponent>()
+        where TComponent : IComponent
     {
         _storages.TryGetValue(typeof(TComponent), out var storages);
-        if (storages is IComponentDataStorage<TComponent>[] typedStorages)
+        if (storages is IComponentStorage<TComponent>[] typedStorages)
         {
             return typedStorages;
         }

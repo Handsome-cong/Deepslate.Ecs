@@ -15,35 +15,35 @@ public sealed partial class WorldBuilder
     internal IReadOnlyDictionary<Type, IReactSystemExecutor> ReactBeforeMove => _reactBeforeMove;
     
     public WorldBuilder WithReactAfterAlloc<TComponent>(IReactAfterAlloc<TComponent> react)
-        where TComponent : IComponentData
+        where TComponent : IComponent
     {
         _reactAfterAlloc[typeof(TComponent)] = react;
         return this;
     }
     
     public WorldBuilder WithReactBeforeFree<TComponent>(IReactBeforeFree<TComponent> react)
-        where TComponent : IComponentData
+        where TComponent : IComponent
     {
         _reactBeforeFree[typeof(TComponent)] = react;
         return this;
     }
     
     public WorldBuilder WithReactAfterCreate<TComponent>(IReactAfterCreate<TComponent> react)
-        where TComponent : IComponentData
+        where TComponent : IComponent
     {
         _reactAfterCreate[typeof(TComponent)] = react;
         return this;
     }
     
     public WorldBuilder WithReactBeforeDestroy<TComponent>(IReactBeforeDestroy<TComponent> react)
-        where TComponent : IComponentData
+        where TComponent : IComponent
     {
         _reactBeforeDestroy[typeof(TComponent)] = react;
         return this;
     }
     
     public WorldBuilder WithReactBeforeMove<TComponent>(IReactBeforeMove<TComponent> react)
-        where TComponent : IComponentData
+        where TComponent : IComponent
     {
         _reactBeforeMove[typeof(TComponent)] = react;
         return this;

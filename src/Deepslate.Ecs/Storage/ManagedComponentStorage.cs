@@ -3,8 +3,8 @@
 namespace Deepslate.Ecs;
 
 internal sealed class ManagedComponentStorage<TComponent>(WorldBuilder builder)
-    : IComponentDataStorage<TComponent>
-    where TComponent : IComponentData
+    : IComponentStorage<TComponent>
+    where TComponent : IComponent
 {
     private readonly IManagedComponentStoragePool<TComponent> _pool =
         builder.ComponentPoolFactory.CreateManagedPool<TComponent>();

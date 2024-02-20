@@ -15,5 +15,5 @@ public readonly struct EntityComponentAccessor
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref TComponent GetComponent<TComponent>()
-        where TComponent : IComponentData => ref Archetype.GetComponent<TComponent>(Entity);
+        where TComponent : IComponent => ref Archetype.GetComponent<TComponent>(Entity);
 }

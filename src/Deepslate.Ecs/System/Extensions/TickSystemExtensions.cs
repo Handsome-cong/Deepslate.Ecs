@@ -3,7 +3,7 @@
 public static class TickSystemExtensions
 {
     public static bool IsWritable<TComponent>(this TickSystem system, Archetype archetype)
-        where TComponent : IComponentData
+        where TComponent : IComponent
     {
         return system.IsWritable(archetype, typeof(TComponent));
     }
@@ -15,7 +15,7 @@ public static class TickSystemExtensions
     }
     
     public static bool IsReadable<TComponent>(this TickSystem system, Archetype archetype)
-        where TComponent : IComponentData
+        where TComponent : IComponent
     {
         return system.IsReadable(archetype, typeof(TComponent));
     }

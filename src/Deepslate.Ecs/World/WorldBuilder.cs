@@ -6,12 +6,12 @@ public sealed partial class WorldBuilder
 
     private readonly Dictionary<Type, Delegate> _resourceFactories = [];
 
-    public IComponentDataPoolFactory ComponentPoolFactory { get; set; } = new DefaultComponentPoolFactory();
+    public IComponentPoolFactory ComponentPoolFactory { get; set; } = new DefaultComponentPoolFactory();
     public IReadOnlyList<Stage> Stages => _stages;
 
     public World? Result { get; private set; }
 
-    public WorldBuilder WithComponentPoolFactory(IComponentDataPoolFactory componentPoolFactory)
+    public WorldBuilder WithComponentPoolFactory(IComponentPoolFactory componentPoolFactory)
     {
         ComponentPoolFactory = componentPoolFactory;
         return this;

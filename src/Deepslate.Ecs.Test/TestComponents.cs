@@ -1,6 +1,6 @@
 ﻿namespace Deepslate.Ecs.Test;
 
-public struct Position : IComponentData
+public struct Position : IComponent
 {
     public float X;
     public float Y;
@@ -9,14 +9,14 @@ public struct Position : IComponentData
     public static readonly Position One = new() { X = 1, Y = 1, Z = 1 };
 }
 
-public struct Velocity : IComponentData
+public struct Velocity : IComponent
 {
     public float X;
     public float Y;
     public float Z;
 }
 
-public struct Name : IComponentData
+public struct Name : IComponent
 {
     public string Value;
 }

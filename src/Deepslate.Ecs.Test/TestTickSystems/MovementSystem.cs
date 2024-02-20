@@ -5,7 +5,7 @@ namespace Deepslate.Ecs.Test.TestTickSystems;
 public sealed partial class MovementSystem : ITickSystemExecutor
 {
     private Writable<Position>.ReadOnly.Query _positionQuery;
-
+    
     public MovementSystem(TickSystemBuilder builder)
     {
         builder.AddQuery()

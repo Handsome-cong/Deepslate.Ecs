@@ -2,7 +2,7 @@
 
 internal struct EntityStorage()
 {
-    private const int SizeOfPage = IComponentDataStorage.SizeOfPage;
+    private const int SizeOfPage = IComponentStorage.SizeOfPage;
     public const int NoIndex = -1;
     
     // A sparse set was used to store the entities in the archetype.

@@ -36,7 +36,7 @@ public sealed partial class WorldBuilder
     }
 
     public WorldBuilder WithManagedComponent<TComponent>()
-        where TComponent : IComponentData
+        where TComponent : IComponent
     {
         var componentType = typeof(TComponent);
         if (!_componentTypes.Add(componentType))
@@ -64,7 +64,7 @@ public sealed partial class WorldBuilder
     }
 
     public WorldBuilder WithUnmanagedComponent<TComponent>()
-        where TComponent : unmanaged, IComponentData
+        where TComponent : unmanaged, IComponent
     {
         var componentType = typeof(TComponent);
         if (!_componentTypes.Add(componentType))
@@ -101,7 +101,7 @@ public sealed partial class WorldBuilder
     }
 
     public WorldBuilder WithUnmanagedComponentIfPossible<TComponent>()
-        where TComponent : IComponentData
+        where TComponent : IComponent
     {
         var componentType = typeof(TComponent);
         if (!_componentTypes.Add(componentType))
@@ -171,14 +171,14 @@ public sealed partial class WorldBuilder
     }
 
     private void RegisterManagedFactories<TComponent>()
-        where TComponent : IComponentData
+        where TComponent : IComponent
     {
         _storageArrayFactory.RegisterFactory<TComponent>();
         ComponentStorageFactory.RegisterManagedFactory<TComponent>();
     }
 
     private void RegisterUnmanagedFactories<TComponent>()
-        where TComponent : unmanaged, IComponentData
+        where TComponent : unmanaged, IComponent
     {
         _storageArrayFactory.RegisterFactory<TComponent>();
         ComponentStorageFactory.RegisterUnmanagedFactory<TComponent>();
