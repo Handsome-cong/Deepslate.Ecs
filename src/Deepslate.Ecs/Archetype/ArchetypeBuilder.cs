@@ -2,14 +2,14 @@
 
 public sealed class ArchetypeBuilder
 {
-    private readonly WorldBuilder _worldBuilder;
     private readonly HashSet<Type> _componentTypes = [];
-    public IEnumerable<Type> ComponentTypes => _componentTypes;
+    public WorldBuilder WorldBuilder { get; }
+    public IReadOnlySet<Type> ComponentTypes => _componentTypes;
     public Archetype? Result { get; private set; }
 
-    internal ArchetypeBuilder(WorldBuilder worldBuilder)
+    internal ArchetypeBuilder(WorldBuilder worldWorldBuilder)
     {
-        _worldBuilder = worldBuilder;
+        WorldBuilder = worldWorldBuilder;
     }
 
     public ArchetypeBuilder WithComponent<TComponent>()
@@ -25,25 +25,25 @@ public sealed class ArchetypeBuilder
         {
             configuredArchetype = Result;
             newArchetypeRegistered = false;
-            return _worldBuilder;
+            return WorldBuilder;
         }
 
         var storages = new IComponentStorage[_componentTypes.Count];
         var count = 0;
         foreach (var componentType in _componentTypes)
         {
-            if (!_worldBuilder.ComponentTypes.Contains(componentType))
+            if (!WorldBuilder.ComponentTypes.Contains(componentType))
             {
-                _worldBuilder.WithUnmanagedComponentIfPossible(componentType);
+                WorldBuilder.WithUnmanagedComponentIfPossible(componentType);
             }
 
-            storages[count++] = _worldBuilder.ComponentStorageFactory.Factories[componentType](_worldBuilder);
+            storages[count++] = WorldBuilder.ComponentStorageFactory.Factories[componentType](WorldBuilder);
         }
 
-        var id = _worldBuilder.NextArchetypeId;
+        var id = WorldBuilder.NextArchetypeId;
         configuredArchetype = new Archetype(id, storages);
-        newArchetypeRegistered = _worldBuilder.TryRegisterArchetype(configuredArchetype, out configuredArchetype);
+        newArchetypeRegistered = WorldBuilder.TryRegisterArchetype(configuredArchetype, out configuredArchetype);
         Result = configuredArchetype;
-        return _worldBuilder;
+        return WorldBuilder;
     }
 }
