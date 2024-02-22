@@ -15,10 +15,13 @@ public sealed class CommandTests
             .WithArchetypeAndBuild<Position>()
             .AddStage(stageBuilder =>
             {
+                TickSystem createSystem = default!;
                 stageBuilder.AddTickSystem(tickSystemBuilder =>
-                        tickSystemBuilder.Build(new CreateSystem(tickSystemBuilder, CreationCount)))
+                        tickSystemBuilder.Build(new CreateSystem(tickSystemBuilder, CreationCount), out createSystem))
                     .AddTickSystem(tickSystemBuilder =>
-                        tickSystemBuilder.Build(new StatisticsSystem(tickSystemBuilder), out statisticsSystem))
+                        tickSystemBuilder
+                            .WithDependency(createSystem)
+                            .Build(new StatisticsSystem(tickSystemBuilder), out statisticsSystem))
                     .Build();
             }).Build();
 
@@ -36,12 +39,17 @@ public sealed class CommandTests
             .WithArchetypeAndBuild<Position>()
             .AddStage(stageBuilder =>
             {
+                TickSystem createSystem = default!;
                 stageBuilder.AddTickSystem(tickSystemBuilder =>
-                        tickSystemBuilder.Build(new CreateSystem(tickSystemBuilder, CreationCount)))
+                        tickSystemBuilder.Build(new CreateSystem(tickSystemBuilder, CreationCount), out createSystem))
                     .AddTickSystem(tickSystemBuilder =>
-                        tickSystemBuilder.Build(new StatisticsSystem(tickSystemBuilder), out statisticsSystem1))
+                        tickSystemBuilder
+                            .WithDependency(createSystem)
+                            .Build(new StatisticsSystem(tickSystemBuilder), out statisticsSystem1))
                     .AddTickSystem(tickSystemBuilder =>
-                        tickSystemBuilder.Build(new DestroySystem(tickSystemBuilder)))
+                        tickSystemBuilder
+                            .WithDependency(statisticsSystem1)
+                            .Build(new DestroySystem(tickSystemBuilder)))
                     .Build();
             })
             .AddStage(stageBuilder =>
@@ -66,10 +74,14 @@ public sealed class CommandTests
             .WithArchetypeAndBuild<Position>()
             .AddStage(stageBuilder =>
             {
+                TickSystem createSystem = default!;
                 stageBuilder.AddTickSystem(tickSystemBuilder =>
-                        tickSystemBuilder.Build(new RecordCreateSystem(tickSystemBuilder, CreationCount)))
+                        tickSystemBuilder.Build(new RecordCreateSystem(tickSystemBuilder, CreationCount),
+                            out createSystem))
                     .AddTickSystem(tickSystemBuilder =>
-                        tickSystemBuilder.Build(new StatisticsSystem(tickSystemBuilder), out statisticsSystem))
+                        tickSystemBuilder
+                            .WithDependency(createSystem)
+                            .Build(new StatisticsSystem(tickSystemBuilder), out statisticsSystem))
                     .Build();
             }).Build();
 
@@ -87,13 +99,19 @@ public sealed class CommandTests
             .WithArchetypeAndBuild<Position>()
             .AddStage(stageBuilder =>
             {
+                TickSystem createSystem = default!;
                 TickSystem destroySystem = default!;
                 stageBuilder.AddTickSystem(tickSystemBuilder =>
-                        tickSystemBuilder.Build(new RecordCreateSystem(tickSystemBuilder, CreationCount)))
+                        tickSystemBuilder.Build(new RecordCreateSystem(tickSystemBuilder, CreationCount),
+                            out createSystem))
                     .AddTickSystem(tickSystemBuilder =>
-                        tickSystemBuilder.Build(new StatisticsSystem(tickSystemBuilder), out statisticsSystem1))
+                        tickSystemBuilder
+                            .WithDependency(createSystem)
+                            .Build(new StatisticsSystem(tickSystemBuilder), out statisticsSystem1))
                     .AddTickSystem(tickSystemBuilder =>
-                        tickSystemBuilder.Build(new RecordDestroySystem(tickSystemBuilder), out destroySystem))
+                        tickSystemBuilder
+                            .WithDependency(statisticsSystem1)
+                            .Build(new RecordDestroySystem(tickSystemBuilder), out destroySystem))
                     .AddTickSystem(tickSystemBuilder =>
                         tickSystemBuilder
                             .WithDependency(destroySystem)
@@ -117,10 +135,14 @@ public sealed class CommandTests
             .WithArchetypeAndBuild<Position>()
             .AddStage(stageBuilder =>
             {
+                TickSystem createSystem = default!;
                 stageBuilder.AddTickSystem(tickSystemBuilder =>
-                        tickSystemBuilder.Build(new DeferCreateSystem(tickSystemBuilder, CreationCount)))
+                        tickSystemBuilder.Build(new DeferCreateSystem(tickSystemBuilder, CreationCount),
+                            out createSystem))
                     .AddTickSystem(tickSystemBuilder =>
-                        tickSystemBuilder.Build(new StatisticsSystem(tickSystemBuilder), out statisticsSystem1))
+                        tickSystemBuilder
+                            .WithDependency(createSystem)
+                            .Build(new StatisticsSystem(tickSystemBuilder), out statisticsSystem1))
                     .Build();
             })
             .AddStage(stageBuilder =>
