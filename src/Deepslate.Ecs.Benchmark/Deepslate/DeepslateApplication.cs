@@ -1,17 +1,17 @@
-﻿using Deepslate.Ecs.Benchmark.Ecs.Components;
-using Deepslate.Ecs.Benchmark.Ecs.TickSystems;
+﻿using Deepslate.Ecs.Benchmark.Deepslate.Components;
 using Deepslate.Ecs.Extensions;
+using MovementSystem = Deepslate.Ecs.Benchmark.Deepslate.TickSystems.MovementSystem;
 
-namespace Deepslate.Ecs.Benchmark.Ecs;
+namespace Deepslate.Ecs.Benchmark.Deepslate;
 
-public sealed class EcsApplication
+public sealed class DeepslateApplication
 {
     private readonly World _world;
     private readonly Archetype _positionArchetype;
     
     public int EntityCount { get; set; } = 0;
 
-    public EcsApplication()
+    public DeepslateApplication()
     {
         _world = new WorldBuilder()
             .WithArchetypeAndBuild<Position>(out _positionArchetype)

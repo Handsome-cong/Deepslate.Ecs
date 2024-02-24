@@ -1,4 +1,4 @@
-﻿namespace Deepslate.Ecs.Benchmark.Ecs.Components;
+﻿namespace Deepslate.Ecs.Benchmark.Deepslate.Components;
 
 public struct Position : IComponent
 {

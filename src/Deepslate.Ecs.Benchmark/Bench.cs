@@ -1,5 +1,6 @@
 ﻿using BenchmarkDotNet.Attributes;
-using Deepslate.Ecs.Benchmark.Ecs;
+using Deepslate.Ecs.Benchmark.Deepslate;
+using Deepslate.Ecs.Benchmark.Flecs;
 using Deepslate.Ecs.Benchmark.Oop;
 
 
@@ -7,18 +8,21 @@ namespace Deepslate.Ecs.Benchmark;
 
 public class Bench
 {
-    private EcsApplication _ecsApplication;
+    private DeepslateApplication _deepslateApplication;
     private OopApplication _oopApplication;
+    private FlecsApplication _flecsApplication;
 
-    private const int EntityCount = 4096;
+    private const int EntityCount = 1024;
 
     [GlobalSetup]
     public void Setup()
     {
-        _ecsApplication = new EcsApplication { EntityCount = EntityCount };
+        _deepslateApplication = new DeepslateApplication { EntityCount = EntityCount };
+        _deepslateApplication.Prepare();
         _oopApplication = new OopApplication { EntityCount = EntityCount };
-        _ecsApplication.Prepare();
         _oopApplication.Prepare();
+        _flecsApplication = new FlecsApplication { EntityCount = EntityCount };
+        _flecsApplication.Prepare();
     }
 
     [Benchmark]
@@ -28,8 +32,14 @@ public class Bench
     }
     
     [Benchmark]
-    public void UseEcs()
+    public void UseDeepslate()
     {
-        _ecsApplication.Start();
+        _deepslateApplication.Start();
+    }
+
+    [Benchmark]
+    public void UseFlecs()
+    {
+        _flecsApplication.Start();
     }
 }

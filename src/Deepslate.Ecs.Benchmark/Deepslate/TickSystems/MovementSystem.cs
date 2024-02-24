@@ -1,7 +1,7 @@
-﻿using Deepslate.Ecs.Benchmark.Ecs.Components;
+﻿using Deepslate.Ecs.Benchmark.Deepslate.Components;
 using Deepslate.Ecs.SourceGenerator;
 
-namespace Deepslate.Ecs.Benchmark.Ecs.TickSystems;
+namespace Deepslate.Ecs.Benchmark.Deepslate.TickSystems;
 
 public sealed partial class MovementSystem : ITickSystemExecutor
 {
