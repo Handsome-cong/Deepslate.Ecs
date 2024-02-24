@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Deepslate.Ecs.Test", "src\D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Deepslate.Ecs.SourceGenerators", "src\Deepslate.Ecs.SourceGenerators\Deepslate.Ecs.SourceGenerators.csproj", "{249FDF2A-4686-4C5B-A1EF-98B10942326B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Deepslate.Ecs.Benchmark", "src\Deepslate.Ecs.Benchmark\Deepslate.Ecs.Benchmark.csproj", "{52FD5FEC-3DC1-4572-B454-5933268B3D72}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{249FDF2A-4686-4C5B-A1EF-98B10942326B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{249FDF2A-4686-4C5B-A1EF-98B10942326B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{249FDF2A-4686-4C5B-A1EF-98B10942326B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{52FD5FEC-3DC1-4572-B454-5933268B3D72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52FD5FEC-3DC1-4572-B454-5933268B3D72}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52FD5FEC-3DC1-4572-B454-5933268B3D72}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52FD5FEC-3DC1-4572-B454-5933268B3D72}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
