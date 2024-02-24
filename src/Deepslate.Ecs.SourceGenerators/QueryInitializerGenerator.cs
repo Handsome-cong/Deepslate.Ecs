@@ -55,6 +55,12 @@ public sealed class QueryInitializerGenerator : IIncrementalGenerator
         {
             return result;
         }
+        
+        // find using directives
+        foreach (var usingDirective in classDeclarationSyntax.SyntaxTree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>())
+        {
+            result.UsingDirectives.Add(usingDirective);
+        }
 
         foreach (var member in classDeclarationSyntax.Members)
         {
@@ -65,8 +71,7 @@ public sealed class QueryInitializerGenerator : IIncrementalGenerator
                     foreach (var variableName in fieldDeclarationSyntax.Declaration.Variables.Select(variable =>
                                  variable.Identifier.Text))
                     {
-                        if (TryGetQueryAttributeInfo(
-                                fieldDeclarationSyntax.AttributeLists,
+                        if (TryGetQueryAttributeInfo(fieldDeclarationSyntax.AttributeLists,
                                 variableName,
                                 context,
                                 out var queryMember))
@@ -140,14 +145,14 @@ public sealed class QueryInitializerGenerator : IIncrementalGenerator
         return sb.ToString().Trim();
     }
 
-    private static bool TryGetQueryAttributeInfo(
-        SyntaxList<AttributeListSyntax> attributeLists,
+    private static bool TryGetQueryAttributeInfo(SyntaxList<AttributeListSyntax> attributeLists,
         string memberName,
         GeneratorSyntaxContext context,
         out QueryMember queryMember)
     {
         queryMember = new QueryMember(memberName);
         var semanticModel = context.SemanticModel;
+
         foreach (var attributeListSyntax in attributeLists)
         {
             foreach (var attributeSyntax in attributeListSyntax.Attributes)
@@ -247,17 +252,18 @@ public sealed class QueryInitializerGenerator : IIncrementalGenerator
         return queryMember.HasAttribute();
     }
 
-    private static void FillComponentTypes(HashSet<string> componentTypes, AttributeSyntax attributeSyntax)
+    private static void FillComponentTypes(
+        HashSet<string> componentTypes, 
+        AttributeSyntax attributeSyntax)
     {
         if (attributeSyntax.Name is not GenericNameSyntax genericNameSyntax)
         {
             return;
         }
 
-        foreach (var componentType in genericNameSyntax.TypeArgumentList.Arguments.Select(componentType =>
-                     componentType.ToString()))
+        foreach (var componentType in genericNameSyntax.TypeArgumentList.Arguments)
         {
-            componentTypes.Add(componentType);
+            componentTypes.Add(componentType.ToString());
         }
     }
 
@@ -278,11 +284,13 @@ public sealed class QueryInitializerGenerator : IIncrementalGenerator
             var namespaceName = classSymbol.ContainingNamespace.ToDisplayString();
             var className = classDeclarationSyntax.Identifier.Text;
 
+            var usingDirectives = new StringBuilder();
             var attributeStringBuilder = new StringBuilder();
             var methodStringBuilder = new StringBuilder();
             var genericQueryFields = new StringBuilder();
             var genericQueryInitialize = new StringBuilder();
 
+            GenerateUsingDirectives(usingDirectives, tickSystem);
             foreach (var queryMember in tickSystem.QueryMembers)
             {
                 GenerateGenericQueryField(genericQueryFields, queryMember);
@@ -323,6 +331,7 @@ public sealed class QueryInitializerGenerator : IIncrementalGenerator
 
             var code = $$"""
                          using System.Diagnostics.CodeAnalysis;
+                         {{usingDirectives}}
                          {{genericNameSpace}}
                          namespace {{namespaceName}};
 
@@ -334,6 +343,16 @@ public sealed class QueryInitializerGenerator : IIncrementalGenerator
                          """;
 
             context.AddSource($"{className}.g.cs", SourceText.From(code, Encoding.UTF8));
+        }
+    }
+    
+    private static void GenerateUsingDirectives(
+        StringBuilder currentStringBuilder,
+        TickSystemExecutorClass tickSystem)
+    {
+        foreach (var usingDirective in tickSystem.UsingDirectives)
+        {
+            currentStringBuilder.Append($"{usingDirective}\n");
         }
     }
 
@@ -415,7 +434,7 @@ public sealed class QueryInitializerGenerator : IIncrementalGenerator
 
         currentStringBuilder.Append("            .Build(out configuredQuery);\n");
 
-        currentStringBuilder.Append($"        {queryMember.Name} = configuredQuery;");
+        currentStringBuilder.Append($"        {queryMember.Name} = configuredQuery;\n");
         if (queryMember.AsGenericQuery)
         {
             currentStringBuilder.Append($"        {queryMember.GenericName} = new({queryMember.Name});\n");
@@ -469,6 +488,7 @@ public sealed class QueryInitializerGenerator : IIncrementalGenerator
         public readonly List<QueryMember> QueryMembers = [];
         public readonly List<GenericQueryMember> GenericQueryMembers = [];
         public readonly ClassDeclarationSyntax ClassDeclarationSyntax = classDeclarationSyntax;
+        public readonly List<UsingDirectiveSyntax> UsingDirectives = [];
 
         public bool NeedsGeneration => QueryMembers.Count > 0 || GenericQueryMembers.Count > 0;
     }
