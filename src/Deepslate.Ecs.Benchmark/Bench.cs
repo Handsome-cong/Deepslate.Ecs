@@ -2,6 +2,7 @@
 using Deepslate.Ecs.Benchmark.Deepslate;
 using Deepslate.Ecs.Benchmark.Flecs;
 using Deepslate.Ecs.Benchmark.Oop;
+using Deepslate.Ecs.Benchmark.Svelto;
 
 
 namespace Deepslate.Ecs.Benchmark;
@@ -11,6 +12,7 @@ public class Bench
     private DeepslateApplication _deepslateApplication;
     private OopApplication _oopApplication;
     private FlecsApplication _flecsApplication;
+    private SveltoApplication _sveltoApplication;
 
     private const int EntityCount = 1024;
 
@@ -23,6 +25,8 @@ public class Bench
         _oopApplication.Prepare();
         _flecsApplication = new FlecsApplication { EntityCount = EntityCount };
         _flecsApplication.Prepare();
+        _sveltoApplication = new SveltoApplication { EntityCount = EntityCount };
+        _sveltoApplication.Prepare();
     }
 
     [Benchmark]
@@ -41,5 +45,11 @@ public class Bench
     public void UseFlecs()
     {
         _flecsApplication.Start();
+    }
+    
+    [Benchmark]
+    public void UseSvelto()
+    {
+        _sveltoApplication.Start();
     }
 }
