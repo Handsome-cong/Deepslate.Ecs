@@ -17,9 +17,9 @@ public sealed partial class StatisticsSystem : ITickSystemExecutor
     public void Execute(Command command)
     {
         Count = 0;
-        foreach (var entityComponentBundle in _queryGeneric)
+        foreach (var storageSpan in _queryGeneric.Storages)
         {
-            Count++;
+            Count += storageSpan.Count;
         }
     }
 }

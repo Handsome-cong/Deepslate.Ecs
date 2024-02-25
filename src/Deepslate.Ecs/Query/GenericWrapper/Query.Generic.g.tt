@@ -71,6 +71,18 @@ public partial struct Writable<#= writableGenericParameters #>
 
             var readOnlyFields = string.Join("\n", Enumerable.Range(1, readOnlyGenericParameterCount)
                 .Select(i => $"                    public ref readonly TReadOnly{i} ReadOnlyComponent{i};"));
+            
+            var writableSpanPublicFields = string.Join("\n", Enumerable.Range(1, writableGenericParameterCount)
+                .Select(i => $"                    public Span<TWritable{i}> Writable{i}Span {{ get; private set; }} = Span<TWritable{i}>.Empty;"));
+            
+            var readOnlySpanPublicFields = string.Join("\n", Enumerable.Range(1, readOnlyGenericParameterCount)
+                .Select(i => $"                    public ReadOnlySpan<TReadOnly{i}> ReadOnly{i}Span {{ get; private set; }} = ReadOnlySpan<TReadOnly{i}>.Empty;"));
+            
+            var writableSpanPublicFieldsInitialization = string.Join("\n", Enumerable.Range(1, writableGenericParameterCount)
+                .Select(i => $"                        Writable{i}Span = Archetype.GetComponents<TWritable{i}>(Range.All);"));
+            
+            var readOnlySpanPublicFieldsInitialization = string.Join("\n", Enumerable.Range(1, readOnlyGenericParameterCount)
+                .Select(i => $"                        ReadOnly{i}Span = Archetype.GetComponents<TReadOnly{i}>(Range.All);"));
 #>
     public partial struct ReadOnly<#= readOnlyGenericParameters #>
 <#= readOnlyGenericParametersWhere #>    {
@@ -82,6 +94,8 @@ public partial struct Writable<#= writableGenericParameters #>
 <#= readOnlyStorages #>
             
             public Enumerator GetEnumerator() => new Enumerator(this);
+
+            public EnumerableStorages Storages => new EnumerableStorages(TypelessQuery.MatchedArchetypes);
 
             public void PostInitialize()
             {
@@ -167,6 +181,56 @@ public partial struct Writable<#= writableGenericParameters #>
                     public Entity Entity;
 <#= writableFields #>
 <#= readOnlyFields #>
+                }
+            }
+
+            public ref struct EnumerableStorages
+            {
+                private readonly ReadOnlySpan<Archetype> _archetypes;
+
+                internal EnumerableStorages(IReadOnlyList<Archetype> archetypes)
+                {
+                    _archetypes = (Archetype[])archetypes;
+                }
+
+                public ArchetypeEnumerator GetEnumerator() => new(_archetypes);
+            }
+
+            public ref struct ArchetypeEnumerator
+            {
+                private ReadOnlySpan<Archetype>.Enumerator _enumerator;
+
+                public StorageSpan Current => new(_enumerator.Current);
+                
+                internal ArchetypeEnumerator(ReadOnlySpan<Archetype> archetypes)
+                {
+                    _enumerator = archetypes.GetEnumerator();
+                }
+                
+                public bool MoveNext() => _enumerator.MoveNext();
+                
+                public ref struct StorageSpan
+                {
+                    public Archetype Archetype { get; } = Archetype.Empty;
+
+                    public int Count { get; private set; } = 0;
+                    public ReadOnlySpan<Entity> Entities { get; private set; } = ReadOnlySpan<Entity>.Empty;
+<#= writableSpanPublicFields #>
+<#= readOnlySpanPublicFields #>
+
+                    internal StorageSpan(Archetype archetype)
+                    {
+                        Archetype = archetype;
+                        Update();
+                    }
+
+                    public void Update()
+                    {
+                        Count = Archetype.Count;
+                        Entities = Archetype.Entities;
+<#= writableSpanPublicFieldsInitialization #>
+<#= readOnlySpanPublicFieldsInitialization #>
+                    }
                 }
             }
         }
