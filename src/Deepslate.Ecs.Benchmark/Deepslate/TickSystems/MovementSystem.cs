@@ -16,12 +16,15 @@ public sealed partial class MovementSystem : ITickSystemExecutor
     
     public void Execute(Command command)
     {
-        foreach (ref var queryResult in _queryGeneric)
+        foreach (var storageSpan in _queryGeneric.Storages)
         {
-            ref var position = ref queryResult.WritableComponent1;
-            position.X += 1;
-            position.Y += 1;
-            position.Z += 1;
+            var positions = storageSpan.Writable1Span;
+            foreach (ref var position in positions)
+            {
+                position.X++;
+                position.Y++;
+                position.Z++;
+            }
         }
     }
 }
