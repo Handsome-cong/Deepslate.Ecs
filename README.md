@@ -60,7 +60,7 @@ Create 256, 1024, 4096 entities with single component.
 
 #### Modify Components
 Modify single component of 256, 1024, 4096 entities.
-![ModifyComponentsBenchmark](docs/benchmarks/Deepslate.Ecs.Benchmark.Benchmarks.ModifyDualComponentsInParallel.ModifyDualComponentsInParallel-barplot.png)
+![ModifyComponentsBenchmark](docs/benchmarks/Deepslate.Ecs.Benchmark.Benchmarks.ModifySingleComponent.ModifySingleComponent-barplot.png)
 
 #### Modify Components In Parallel
 Modify two components of 256, 1024, 4096 entities in parallel. Auto parallelization in Deepslate.Ecs and manual parallelization in OOP.
