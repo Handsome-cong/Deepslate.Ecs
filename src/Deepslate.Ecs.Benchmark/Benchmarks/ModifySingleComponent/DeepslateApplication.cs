@@ -2,9 +2,9 @@
 using Deepslate.Ecs.Extensions;
 using MovementSystem = Deepslate.Ecs.Benchmark.Deepslate.TickSystems.MovementSystem;
 
-namespace Deepslate.Ecs.Benchmark.Deepslate;
+namespace Deepslate.Ecs.Benchmark.Benchmarks.ModifySingleComponent;
 
-public sealed class DeepslateApplication
+public sealed class DeepslateApplication : IDisposable
 {
     private readonly World _world;
     private readonly Archetype _positionArchetype;
@@ -31,5 +31,10 @@ public sealed class DeepslateApplication
     public void Start()
     {
         _world.Tick();
+    }
+
+    public void Dispose()
+    {
+        _world.Dispose();
     }
 }

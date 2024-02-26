@@ -1,12 +1,13 @@
-﻿using Deepslate.Ecs.Benchmark.Oop.Components;
+﻿using Deepslate.Ecs.Benchmark.Oop;
+using Deepslate.Ecs.Benchmark.Oop.Components;
 
-namespace Deepslate.Ecs.Benchmark.Oop;
+namespace Deepslate.Ecs.Benchmark.Benchmarks.ModifySingleComponent;
 
 public sealed class OopApplication
 {
-    private GameEntityManager _manager = new();
+    private readonly GameEntityManager _manager = new();
     
-    public int EntityCount { get; set; } = 0;
+    public int EntityCount { get; set; }
 
     public void Prepare()
     {
@@ -14,7 +15,8 @@ public sealed class OopApplication
         {
             var entity = _manager.CreateEntity();
             entity.AddComponent<Position>();
-            entity.AddComponent<MovementComponent>();
+            entity.AddComponent<Velocity>();
+            
         }
     }
     

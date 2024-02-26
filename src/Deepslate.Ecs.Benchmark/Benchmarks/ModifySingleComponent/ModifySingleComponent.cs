@@ -1,20 +1,19 @@
 ﻿using BenchmarkDotNet.Attributes;
-using Deepslate.Ecs.Benchmark.Deepslate;
-using Deepslate.Ecs.Benchmark.Flecs;
-using Deepslate.Ecs.Benchmark.Oop;
-using Deepslate.Ecs.Benchmark.Svelto;
+using Deepslate.Ecs.Benchmark.Benchmarks.Common;
 
+namespace Deepslate.Ecs.Benchmark.Benchmarks.ModifySingleComponent;
 
-namespace Deepslate.Ecs.Benchmark;
-
-public class Bench
+[RPlotExporter]
+[Config(typeof(BenchmarkConfig))]
+public class ModifySingleComponent
 {
     private DeepslateApplication _deepslateApplication;
     private OopApplication _oopApplication;
     private FlecsApplication _flecsApplication;
     private SveltoApplication _sveltoApplication;
 
-    private const int EntityCount = 1024;
+    [Params(256, 1024, 4096)]
+    public int EntityCount { get; set; }
 
     [GlobalSetup]
     public void Setup()
@@ -29,26 +28,31 @@ public class Bench
         _sveltoApplication.Prepare();
     }
 
+    [GlobalCleanup]
+    public void Cleanup()
+    {
+        _deepslateApplication.Dispose();
+        _sveltoApplication.Dispose();
+    }
+
     [Benchmark]
-    public void UseOop()
+    public void Oop()
     {
         _oopApplication.Start();
     }
     
     [Benchmark]
-    public void UseDeepslate()
+    public void Deepslate()
     {
         _deepslateApplication.Start();
     }
 
-    [Benchmark]
-    public void UseFlecs()
+    public void Flecs()
     {
         _flecsApplication.Start();
     }
     
-    [Benchmark]
-    public void UseSvelto()
+    public void Svelto()
     {
         _sveltoApplication.Start();
     }

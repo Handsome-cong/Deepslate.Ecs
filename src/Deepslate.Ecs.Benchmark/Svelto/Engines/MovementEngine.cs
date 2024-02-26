@@ -5,8 +5,6 @@ namespace Deepslate.Ecs.Benchmark.Svelto.Engines;
 
 public sealed class MovementEngine(ExclusiveGroup group) : IQueryingEntitiesEngine
 {
-    private ExclusiveGroup _group = group;
-    
     public EntitiesDB entitiesDB { get; set; } = default!;
 
     public void Ready()
@@ -15,7 +13,7 @@ public sealed class MovementEngine(ExclusiveGroup group) : IQueryingEntitiesEngi
 
     public void Update()
     {
-        var (buffer, _, count)= entitiesDB.QueryEntities<Position>(_group);
+        var (buffer, _, count)= entitiesDB.QueryEntities<Position>(group);
         for (var i = 0; i < count; i++)
         {
             ref var position = ref buffer[i];

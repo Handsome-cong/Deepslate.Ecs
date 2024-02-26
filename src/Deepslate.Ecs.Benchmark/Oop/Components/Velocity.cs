@@ -1,9 +1,10 @@
 ﻿namespace Deepslate.Ecs.Benchmark.Oop.Components;
 
-public sealed class Position : Component
+public sealed class Velocity : Component
 {
     public int X, Y, Z;
-    public void Move()
+
+    public void Accelerate()
     {
         X++;
         Y++;

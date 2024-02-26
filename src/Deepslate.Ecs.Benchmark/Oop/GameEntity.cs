@@ -9,9 +9,12 @@ public sealed class GameEntity
     internal uint Id { get; }
     public bool Alive { get; internal set; } = false;
 
-    internal GameEntity(uint id)
+    public GameEntityManager Manager { get; }
+
+    internal GameEntity(uint id, GameEntityManager manager)
     {
         Id = id;
+        Manager = manager;
     }
 
     internal void Update()
@@ -27,7 +30,8 @@ public sealed class GameEntity
     {
         var component = new TComponent
         {
-            Entity = this
+            Entity = this,
+            Manager = Manager
         };
         _components.Add(component);
         component.Startup();

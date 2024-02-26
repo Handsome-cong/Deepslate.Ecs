@@ -5,6 +5,8 @@ public sealed class GameEntityManager
     private readonly List<GameEntity> _entities = [];
     
     private readonly Queue<GameEntity> _recycledEntities = [];
+    
+    public IReadOnlyList<GameEntity> Entities => _entities;
 
     public void Update()
     {
@@ -22,7 +24,7 @@ public sealed class GameEntityManager
             return entity;
         }
 
-        entity = new GameEntity((uint)_entities.Count) { Alive = true };
+        entity = new GameEntity((uint)_entities.Count, this) { Alive = true };
         _entities.Add(entity);
         return entity;
     }

@@ -1,8 +1,8 @@
 ﻿using Deepslate.Ecs.Benchmark.Flecs.Components;
 
-namespace Deepslate.Ecs.Benchmark.Flecs;
+namespace Deepslate.Ecs.Benchmark.Benchmarks.ModifySingleComponent;
 
-public sealed class FlecsApplication
+public sealed class FlecsApplication : IDisposable
 {
     private global::Flecs.NET.Core.World _world;
 
@@ -30,5 +30,10 @@ public sealed class FlecsApplication
             position.Y += 1;
             position.Z += 1;
         } );
+    }
+
+    public void Dispose()
+    {
+        _world.Dispose();
     }
 }

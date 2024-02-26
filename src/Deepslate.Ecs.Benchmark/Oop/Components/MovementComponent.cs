@@ -6,18 +6,14 @@ public sealed class MovementComponent : Component
 
     protected internal override void Startup()
     {
-        if (!Entity.TryGetComponent(out Position pos))
+        if (!Entity.TryGetComponent(out _position!))
         {
-            pos = Entity.AddComponent<Position>();
+            _position = Entity.AddComponent<Position>();
         }
-
-        _position = pos!;
     }
 
     protected internal override void Update()
     {
-        _position.X++;
-        _position.Y++;
-        _position.Z++;
+        _position.Move();
     }
 }

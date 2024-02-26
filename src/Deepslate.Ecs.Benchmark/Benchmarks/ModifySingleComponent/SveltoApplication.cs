@@ -3,9 +3,9 @@ using Deepslate.Ecs.Benchmark.Svelto.Engines;
 using Svelto.ECS;
 using Svelto.ECS.Schedulers;
 
-namespace Deepslate.Ecs.Benchmark.Svelto;
+namespace Deepslate.Ecs.Benchmark.Benchmarks.ModifySingleComponent;
 
-public sealed class SveltoApplication
+public sealed class SveltoApplication : IDisposable
 {
     private EnginesRoot _enginesRoot;
     private EntitiesSubmissionScheduler _entitiesSubmissionScheduler;
@@ -39,5 +39,10 @@ public sealed class SveltoApplication
     public void Start()
     {
         _movementEngine.Update();
+    }
+
+    public void Dispose()
+    {
+        _enginesRoot.Dispose();
     }
 }

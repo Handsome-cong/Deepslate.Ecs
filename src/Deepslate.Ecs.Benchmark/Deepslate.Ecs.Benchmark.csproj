@@ -9,6 +9,7 @@
 
     <ItemGroup>
       <PackageReference Include="BenchmarkDotNet" Version="0.13.12" />
+      <PackageReference Include="BenchmarkDotNet.Diagnostics.dotTrace" Version="0.13.12" />
       <PackageReference Include="Entitas" Version="1.14.2" />
       <PackageReference Include="Entitas.Roslyn.CodeGeneration.Plugins" Version="1.14.2" />
       <PackageReference Include="Flecs.NET.Release" Version="3.2.11" />
